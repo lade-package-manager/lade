@@ -10,7 +10,7 @@ pub fn install_from_git(package: &str, url: &str) -> Result<(), Box<dyn std::err
     if lade_build_path().exists() {
         std::fs::remove_dir_all(lade_build_path()).unwrap_or_else(|e| {
             err!("Failed to remove build directory: {}", e);
-            std::process::exit(1);
+            crash!();
         });
     }
 

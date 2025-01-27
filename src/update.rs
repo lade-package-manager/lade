@@ -12,7 +12,7 @@
 use colored::Colorize;
 
 use crate::{
-    err, info,
+    crash, err, info,
     paths::{lade_package_list_path_dir, rade_package_list_path},
 };
 
@@ -22,7 +22,7 @@ pub fn update() {
     if rade_package_list_path().exists() {
         std::fs::remove_dir_all(rade_package_list_path()).unwrap_or_else(|e| {
             err!("Failed to remove package list directory: ", e);
-            std::process::exit(1);
+            crash!();
         });
     }
 
@@ -32,13 +32,13 @@ pub fn update() {
     )
     .unwrap_or_else(|e| {
         err!("Failed to update package list", e);
-        std::process::exit(1);
+        crash!();
     });
 
     if lade_package_list_path_dir().exists() {
         std::fs::remove_dir_all(lade_package_list_path_dir()).unwrap_or_else(|e| {
             err!("Failed to retrieve package list.\nPlease run `lade update` to retrive package list. ", e);
-            std::process::exit(1);
+            crash!();
         });
     }
 
@@ -54,7 +54,7 @@ pub fn update() {
             "Failed to update package list".bold(),
             e
         );
-        std::process::exit(1);
+        crash!();
     });
 
     println!("{} {}", ">>>".green().bold(), "Update complete!".bold());
