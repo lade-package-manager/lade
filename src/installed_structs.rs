@@ -35,18 +35,20 @@ impl Installed {
         let path = paths::lade_packages_installed_path();
 
         // if the file does not exist, create it
-        let file = fs::read_to_string(&path).unwrap_or_else(|e| {
-            if e.kind() == std::io::ErrorKind::NotFound {
-                fs::File::create(&path).unwrap_or_else(|e| {
-                    error!("Failed to create installed packages file", &e);
-                });
-                "".to_string()
-            } else {
-                error!("Failed to open installed packages file", e);
-            }
-        });
+        let file = fs::read_to_string(&path)
+            .map(|read| read.trim().to_string())
+            .unwrap_or_else(|e| {
+                if e.kind() == std::io::ErrorKind::NotFound {
+                    fs::File::create(&path).unwrap_or_else(|e| {
+                        error!("Failed to create installed packages file", &e);
+                    });
+                    "".to_string()
+                } else {
+                    error!("Failed to open installed packages file", e);
+                }
+            });
 
-        if file.trim() == "" || file.trim().is_empty() {
+        if file.is_empty() {
             let n = Installed {
                 last_update: chrono::Local::now().to_string(),
                 packages: Vec::new(),
@@ -105,13 +107,7 @@ impl Installed {
             );
         });
 
-        for pkg in json.packages {
-            if pkg.name == package {
-                return true;
-            }
-        }
-
-        false
+        json.packages.into_iter().any(|pkg| pkg.name == package)
     }
 
     #[allow(warnings)]
@@ -124,13 +120,7 @@ impl Installed {
             error!("Failed to parse installed.json", e);
         });
 
-        for n in json.packages {
-            if n.name == package {
-                return Some(n);
-            }
-        }
-
-        None
+        json.packages.into_iter().find(|n| n.name == package)
     }
 
     pub fn add_package(&mut self, package: Package) {
@@ -144,13 +134,15 @@ impl Installed {
     }
 
     pub fn remove_package(&mut self, package: Package) {
-        let mut num = 0usize;
-        for s in self.packages.clone() {
-            if s == package {
-                self.packages.remove(num);
-            }
-            num += 1;
-        }
+        self.packages
+            .clone()
+            .into_iter()
+            .enumerate()
+            .for_each(|(i, s)| {
+                if s == package {
+                    self.packages.remove(i);
+                }
+            });
 
         let json = serde_json::to_string(&self).unwrap_or_else(|e| {
             error!(e, e);
