@@ -1,33 +1,31 @@
 use crate::{
-    err,
-    crash,
+    crash, err,
     package_list_structs::{PackageJson, Packages, RadePackage},
     paths::{lade_package_list_path, rade_package_list_path},
 };
 use colored::*;
 use std::{ffi::OsStr, fs};
 
-pub struct LRPackage{
+pub struct LRPackage {
     pub lade: Option<PackageJson>,
     pub rade: Option<RadePackage>,
 }
 
-pub fn search_package(package: &str) -> LRPackage{
+pub fn search_package(package: &str) -> LRPackage {
     let lade_result = search_package_lade(package);
-    if let Some(result) = lade_result{
-        return LRPackage{ 
+    if let Some(result) = lade_result {
+        return LRPackage {
             lade: Some(result),
             rade: None,
         };
-
-    }else{
-        if let Some(s) = search_package_rade(package){
-            return LRPackage{
+    } else {
+        if let Some(s) = search_package_rade(package) {
+            return LRPackage {
                 lade: None,
                 rade: Some(s),
             };
-        }else{
-            return LRPackage{
+        } else {
+            return LRPackage {
                 lade: None,
                 rade: None,
             };

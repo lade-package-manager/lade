@@ -12,8 +12,7 @@
 use colored::Colorize;
 
 use crate::{
-    err, info,
-    crash,
+    crash, err, info,
     paths::{lade_package_list_path_dir, rade_package_list_path},
 };
 

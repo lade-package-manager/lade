@@ -1,16 +1,25 @@
 use crate::{
-    dependencies::solve_dependencies, download_file::download_package, exe_name::get_exec_name, info, install_from_git, installed_structs::{self, Installed}, package_list_structs::{PackageJson, RadePackage}, search_package::{search_package, search_package_lade, search_package_rade}, unzip_file
+    dependencies::solve_dependencies,
+    download_file::download_package,
+    exe_name::get_exec_name,
+    info, install_from_git,
+    installed_structs::{self, Installed},
+    package_list_structs::{PackageJson, RadePackage},
+    search_package::{search_package, search_package_lade, search_package_rade},
+    unzip_file,
 };
 use colored::*;
 use std::path::PathBuf;
 
 pub fn install(packages: &mut Vec<String>) -> Result<(), Box<dyn std::error::Error>> {
-
     let resolved_dependencies = resolve_dependencies(packages)?;
 
     packages.iter().for_each(|f| {
-        if Installed::is_installed(&f){
-            info!(format!("Package {} is already installed. Reinstalling...", f));
+        if Installed::is_installed(&f) {
+            info!(format!(
+                "Package {} is already installed. Reinstalling...",
+                f
+            ));
         }
     });
 
@@ -39,33 +48,30 @@ pub fn install(packages: &mut Vec<String>) -> Result<(), Box<dyn std::error::Err
         .trim()
         .to_lowercase();
 
-    
     if user_input == "y" || user_input == "yes" {
         let mut installed = Installed::new();
-        for pkg in resolved_dependencies{
-
+        for pkg in resolved_dependencies {
             let lrpkg = search_package(&pkg);
-            match lrpkg.lade{
+            match lrpkg.lade {
                 Some(_) => {
-                    if let Some(pkg) = Installed::search_package(&pkg){
+                    if let Some(pkg) = Installed::search_package(&pkg) {
                         installed.remove_package(pkg);
                     }
-                },
-                None => {},
+                }
+                None => {}
             }
 
-            match lrpkg.rade{
+            match lrpkg.rade {
                 Some(_) => {
-                    if let Some(pkg) = Installed::search_package(&pkg){
+                    if let Some(pkg) = Installed::search_package(&pkg) {
                         installed.remove_package(pkg);
                     }
-                },
-                None => {}, 
+                }
+                None => {}
             }
 
             install_package(&pkg)?;
-        };
-
+        }
     } else {
         println!("Installation canceled.");
     }
@@ -106,13 +112,11 @@ fn resolve_dependencies_and_collect(
 
 fn install_package(package: &str) -> Result<(), Box<dyn std::error::Error>> {
     if let Some(pkg_lade) = search_package_lade(package) {
-        info!(
-            format!(
+        info!(format!(
             "Installing {} (v{})",
             pkg_lade.name,
             pkg_lade.version.bright_yellow()
-            )
-        );
+        ));
         if let Some(download_url) = pkg_lade.download.clone() {
             install_from_url(&download_url)?;
         } else {
@@ -135,13 +139,11 @@ fn install_package(package: &str) -> Result<(), Box<dyn std::error::Error>> {
             package.to_owned(),
         ));
     } else if let Some(pkg_rade) = search_package_rade(package) {
-        info!(
-            format!(
+        info!(format!(
             "Installing {} ({})",
             package,
             pkg_rade.version.bright_yellow()
-            )
-        );
+        ));
 
         let mut nv = None;
 
@@ -152,14 +154,14 @@ fn install_package(package: &str) -> Result<(), Box<dyn std::error::Error>> {
             nv = Some(String::from("true"));
             install_from_url(package)?;
             exec_name = get_exec_name();
-            if exec_name == "" || exec_name == "\n"{
+            if exec_name == "" || exec_name == "\n" {
                 exec_name = package.to_string();
             }
         } else {
             install_from_git::install_from_git(&package, &pkg_rade.repository)?;
 
             exec_name = get_exec_name();
-            if exec_name == "" || exec_name == "\n"{
+            if exec_name == "" || exec_name == "\n" {
                 exec_name = package.to_string();
             }
         }

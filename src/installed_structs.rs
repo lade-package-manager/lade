@@ -1,5 +1,8 @@
 use serde::{Deserialize, Serialize};
-use std::{fs, io::{self, Write}};
+use std::{
+    fs,
+    io::{self, Write},
+};
 
 use crate::{
     crash, err, error,
@@ -43,21 +46,30 @@ impl Installed {
             }
         });
 
-        if file.trim() == "" || file.trim().is_empty(){
+        if file.trim() == "" || file.trim().is_empty() {
             let n = Installed {
                 last_update: chrono::Local::now().to_string(),
                 packages: Vec::new(),
             };
-            let mut file =fs::File::create(lade_packages_installed_path()).unwrap_or_else(|e| {
-                error!("Failed to create Log file", format!("Failed to create log file: {}", e));
+            let mut file = fs::File::create(lade_packages_installed_path()).unwrap_or_else(|e| {
+                error!(
+                    "Failed to create Log file",
+                    format!("Failed to create log file: {}", e)
+                );
             });
 
             let content = serde_json::to_string(&n).unwrap_or_else(|e| {
-                error!("Failed to create json", format!("Failed to create json: {}",e));
+                error!(
+                    "Failed to create json",
+                    format!("Failed to create json: {}", e)
+                );
             });
 
             writeln!(file, "{}", content).unwrap_or_else(|e| {
-                error!("Failed to write to log file", format!("Failed to write to log file: {}", e));
+                error!(
+                    "Failed to write to log file",
+                    format!("Failed to write to log file: {}", e)
+                );
             });
 
             return n;
@@ -68,30 +80,33 @@ impl Installed {
         });
 
         installed
-
     }
 
-    pub fn is_installed(package: &str) -> bool{
+    pub fn is_installed(package: &str) -> bool {
         let path = lade_packages_installed_path();
         let content = fs::read_to_string(&path).unwrap_or_else(|e| {
-            if e.kind() == io::ErrorKind::NotFound{
+            if e.kind() == io::ErrorKind::NotFound {
                 (Installed::new());
 
                 return fs::read_to_string(&path).unwrap_or_else(|e| {
                     error!(e, e);
                 });
             }
-            error!(format!("Failed to read {}: {}", path.display(), e), format!("Failed to read {}: {}", path.display(), e));
+            error!(
+                format!("Failed to read {}: {}", path.display(), e),
+                format!("Failed to read {}: {}", path.display(), e)
+            );
         });
-
-        
 
         let json: Installed = serde_json::from_str(&content).unwrap_or_else(|e| {
-            error!("Failed to parse json", format!("Failed to parse json: {}\nFile: {}", e, path.display()));
+            error!(
+                "Failed to parse json",
+                format!("Failed to parse json: {}\nFile: {}", e, path.display())
+            );
         });
 
-        for pkg in json.packages{
-            if pkg.name == package{
+        for pkg in json.packages {
+            if pkg.name == package {
                 return true;
             }
         }
@@ -141,9 +156,13 @@ impl Installed {
             error!(e, e);
         });
         fs::write(lade_packages_installed_path(), json).unwrap_or_else(|e| {
-            if e.kind() == io::ErrorKind::NotFound{
+            if e.kind() == io::ErrorKind::NotFound {
                 fs::File::create(lade_packages_installed_path()).unwrap_or_else(|e| {
-                    error!("Failed to create file", format!("Failed to create log file: {}", e), 4);
+                    error!(
+                        "Failed to create file",
+                        format!("Failed to create log file: {}", e),
+                        4
+                    );
                 });
             }
             error!(
