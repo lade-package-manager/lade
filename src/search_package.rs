@@ -1,5 +1,6 @@
 use crate::{
     err,
+    crash,
     package_list_structs::{PackageJson, Packages, RadePackage},
     paths::{lade_package_list_path, rade_package_list_path},
 };
@@ -48,7 +49,7 @@ pub fn search_package_rade(package: &str) -> Option<RadePackage> {
                 Error code:",
                 e
             );
-            std::process::exit(1);
+            crash!();
         }
     };
 
@@ -73,12 +74,12 @@ pub fn search_package_rade(package: &str) -> Option<RadePackage> {
         let package_toml = dir_path.join(package).join("package.toml");
         let content = fs::read_to_string(&package_toml).unwrap_or_else(|e| {
             err!(format!("Failed to read {}", package_toml.display()), e);
-            std::process::exit(1);
+            crash!();
         });
 
         package_rade = Some(toml::from_str(&content).unwrap_or_else(|e| {
             err!(format!("Failed to parse {}", package_toml.display()), e);
-            std::process::exit(1);
+            crash!();
         }));
     }
     if !found {
@@ -107,7 +108,7 @@ pub fn search_package_lade(package: &str) -> Option<PackageJson> {
             "to retrieve package list.".bold(),
             e
         ));
-        std::process::exit(1);
+        crash!();
     }
 
     let package_lade = content.unwrap();
@@ -115,7 +116,7 @@ pub fn search_package_lade(package: &str) -> Option<PackageJson> {
         Ok(parsed) => parsed,
         Err(e) => {
             err!("Failed to parse package list", e);
-            std::process::exit(1);
+            crash!();
         }
     };
 
