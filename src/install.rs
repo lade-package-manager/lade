@@ -29,6 +29,8 @@ pub fn install(packages: &mut Vec<String>) -> Result<(), Box<dyn std::error::Err
         if num == 4 {
             println!();
         }
+        num += 1;
+
         let pkg = search_package(package);
 
         if let Some(pkg_lade) = pkg.lade {
@@ -38,7 +40,6 @@ pub fn install(packages: &mut Vec<String>) -> Result<(), Box<dyn std::error::Err
         if let Some(pkg_rade) = pkg.rade {
             print!("{} ({}) ", package, pkg_rade.version.bright_yellow());
         }
-        num += 1;
     }
     println!();
 
