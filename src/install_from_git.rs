@@ -10,7 +10,7 @@ pub fn install_from_git(package: &str, url: &str) -> Result<(), Box<dyn std::err
     if lade_build_path().exists() {
         std::fs::remove_dir_all(lade_build_path()).unwrap_or_else(|e| {
             err!("Failed to remove build directory: {}", e);
-            crash!();
+            std::process::exit(1);
         });
     }
 
@@ -20,7 +20,7 @@ pub fn install_from_git(package: &str, url: &str) -> Result<(), Box<dyn std::err
     let install_comrade = lade_build_path().join(".comrade").join("build.sh");
     let install_lade = lade_build_path().join(".lade").join("build.sh");
     let install_rade = lade_build_path().join(".build.lade.sh");
-    let installs = vec![install_sh, install_comrade, install_lade, install_rade];
+    let installs = vec![install_lade, install_comrade, install_rade, install_sh];
 
     let mut find = false;
 
