@@ -1,64 +1,45 @@
 #![allow(unused)]
 use std::path::PathBuf;
 
+fn lade_config_dir() -> Option<PathBuf> {
+    dirs_next::config_dir().map(|p| p.join("lade"))
+}
+
 pub fn lade_package_list_path() -> PathBuf {
-    let mut path = dirs_next::config_dir().unwrap();
-    path.push("lade");
-    path.push("packagelists");
-    path.push("lade");
-    path.push("package_list.json");
-    path
+    lade_config_dir()
+        .unwrap()
+        .join("packagelists")
+        .join("lade")
+        .join("package_list.json")
 }
 
 pub fn lade_package_list_path_dir() -> PathBuf {
-    let mut path = dirs_next::config_dir().unwrap();
-    path.push("lade");
-    path.push("packagelists");
-    path.push("lade");
-    path
+    lade_config_dir().unwrap().join("packagelists").join("lade")
 }
 
 pub fn lade_bin_path() -> PathBuf {
-    let mut path = dirs_next::config_dir().unwrap();
-    path.push("lade");
-    path.push("bin");
-    path
+    lade_config_dir().unwrap().join("bin")
 }
 
 pub fn lade_build_path() -> PathBuf {
-    let mut path = dirs_next::config_dir().unwrap();
-    path.push("lade");
-    path.push("build");
-    path
+    lade_config_dir().unwrap().join("build")
 }
 
 pub fn lade_cache_path() -> PathBuf {
-    let mut path = dirs_next::config_dir().unwrap();
-    path.push("lade");
-    path.push("cache");
-    path
+    lade_config_dir().unwrap().join("cache")
 }
 
 pub fn rade_package_list_path() -> PathBuf {
-    let mut path = dirs_next::config_dir().unwrap();
-    path.push("lade");
-    path.push("packagelists");
-    path.push("rade");
-    path
+    lade_config_dir().unwrap().join("packagelists").join("rade")
 }
 
 pub fn lade_log_path() -> PathBuf {
-    let mut path = dirs_next::config_dir().unwrap();
-    path.push("lade");
-    path.push("logs");
-    path.push("lade.log");
-    path
+    lade_config_dir().unwrap().join("logs").join("lade.log")
 }
 
 pub fn lade_packages_installed_path() -> PathBuf {
-    let mut path = dirs_next::config_dir().unwrap();
-    path.push("lade");
-    path.push("packages");
-    path.push("installed.json");
-    path
+    lade_config_dir()
+        .unwrap()
+        .join("packages")
+        .join("installed.json")
 }
