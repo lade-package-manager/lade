@@ -2,8 +2,10 @@ name: Weekly macOS Rust Build
 
 on:
   workflow_dispatch: # 手動トリガー
-  # schedule:       # 定期実行（必要に応じて有効化）
-  #   - cron: "0 15 * * 5" # 毎週金曜日午後3時（UTC）
+  # 定期実行
+  schedule:
+    # 毎週金曜日午後3時(UTC)
+    - cron: "0 15 * * 5"
 
 jobs:
   build:
@@ -26,4 +28,4 @@ jobs:
       with:
         name: lade-weekly-macos-build
         path: |
-          target/release/lade # 必要なファイルを指定
+          target/release/lade
