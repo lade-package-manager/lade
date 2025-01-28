@@ -21,8 +21,7 @@ pub fn search_package(package: &str) {
             println!("Download: {}", result.download);
             println!("Language: {}", result.language);
             println!("Capacity: {}", result.capacity);
-            if !result.dependencies.is_empty()
-                && result.dependencies != "None"
+            if !["", "None"].contains(&result.dependencies)
             {
                 println!("Dependencies: {}", result.dependencies);
             }
