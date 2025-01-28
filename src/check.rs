@@ -9,7 +9,6 @@ pub fn check() {
 
     for package in installed.packages.clone() {
         let pkg = search_package::search_package(&package.name);
-        println!("{:?}", pkg);
 
         if let Some(packagejson) = pkg.lade {
             if package.name == packagejson.name && package.version != packagejson.version {
