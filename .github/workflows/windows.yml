@@ -1,0 +1,31 @@
+name: Weekly Windows Rust Build
+
+on:
+  workflow_dispatch: # 手動トリガー
+  # 定期実行
+  schedule:
+    # 毎週金曜日午後3時(UTC)
+    - cron: "0 16 * * 5"
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Rust
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: stable
+        override: true
+
+    - name: Build project
+      run: cargo build --release
+
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: lade-weekly-windows-build
+        path: |
+          target\release\lade.exe
