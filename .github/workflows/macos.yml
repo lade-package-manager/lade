@@ -1,7 +1,7 @@
 name: Weekly macOS Rust Build
 
-on:
-  schedule:
+#on:
+  #schedule:
     # 毎週金曜日の午後3時 (UTC)
     # テストの為に今だけビルドする
     #- cron: "0 15 * * 5"
