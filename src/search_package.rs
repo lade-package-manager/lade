@@ -4,29 +4,29 @@ use crate::{
     paths::{lade_package_list_path, rade_package_list_path},
 };
 use colored::*;
-use std::{ffi::OsStr, fs};
+use std::fs;
 
-pub struct LRPackage{
+#[derive(Debug)]
+pub struct LRPackage {
     pub lade: Option<PackageJson>,
     pub rade: Option<RadePackage>,
 }
 
-pub fn search_package(package: &str) -> LRPackage{
+pub fn search_package(package: &str) -> LRPackage {
     let lade_result = search_package_lade(package);
-    if let Some(result) = lade_result{
-        return LRPackage{ 
+    if let Some(result) = lade_result {
+        return LRPackage {
             lade: Some(result),
             rade: None,
         };
-
-    }else{
-        if let Some(s) = search_package_rade(package){
-            return LRPackage{
+    } else {
+        if let Some(s) = search_package_rade(package) {
+            return LRPackage {
                 lade: None,
                 rade: Some(s),
             };
-        }else{
-            return LRPackage{
+        } else {
+            return LRPackage {
                 lade: None,
                 rade: None,
             };
@@ -35,62 +35,22 @@ pub fn search_package(package: &str) -> LRPackage{
 }
 
 pub fn search_package_rade(package: &str) -> Option<RadePackage> {
-    let package_list_rade = rade_package_list_path();
+    let dir_path = rade_package_list_path();
+    let dir = fs::read_dir(&dir_path).ok()?;
 
-    let dir_path = package_list_rade;
-    let dir = match fs::read_dir(&dir_path) {
-        Ok(dir) => dir,
-        Err(e) => {
-            err!(
-                "
-                Failed to retrieve package list.\n
-                Please run `rade update` to retrieve package list.\n
-                Error code:",
-                e
-            );
-            std::process::exit(1);
-        }
-    };
-
-    let mut found: bool = false;
     for entry in dir.flatten() {
-        if entry.file_name() == <&str as AsRef<OsStr>>::as_ref(&package) {
-            found = true;
-
+        if entry.file_name() == package {
             let target = entry.path();
 
-            if !target.is_dir() {
-                found = false;
+            if target.is_dir() {
+                let package_toml = target.join("package.toml");
+                let content = fs::read_to_string(&package_toml).ok()?;
+                return toml::from_str(&content).ok();
             }
-
-            break;
         }
     }
 
-    let mut package_rade: Option<RadePackage> = None;
-
-    if found {
-        let package_toml = dir_path.join(package).join("package.toml");
-        let content = fs::read_to_string(&package_toml).unwrap_or_else(|e| {
-            err!(format!("Failed to read {}", package_toml.display()), e);
-            std::process::exit(1);
-        });
-
-        package_rade = Some(toml::from_str(&content).unwrap_or_else(|e| {
-            err!(format!("Failed to parse {}", package_toml.display()), e);
-            std::process::exit(1);
-        }));
-    }
-    if !found {
-        err!("Package not found");
-        return None;
-    } else {
-        if let Some(package_r) = package_rade {
-            return Some(package_r);
-        } else {
-            return None;
-        }
-    }
+    None
 }
 
 pub fn search_package_lade(package: &str) -> Option<PackageJson> {

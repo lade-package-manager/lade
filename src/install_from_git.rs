@@ -1,4 +1,4 @@
-use std::fs;
+use std::{fs, process::Stdio};
 
 use crate::{
     crash, err, info,
@@ -30,6 +30,8 @@ pub fn install_from_git(package: &str, url: &str) -> Result<(), Box<dyn std::err
             std::process::Command::new("sh")
                 .arg(install)
                 .current_dir(lade_build_path())
+                .stdout(Stdio::null())
+                .stderr(Stdio::null())
                 .status()
                 .unwrap_or_else(|e| {
                     err!("Failed to run install script. please see lade log file", e);

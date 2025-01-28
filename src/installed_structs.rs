@@ -1,5 +1,5 @@
 use serde::{Deserialize, Serialize};
-use std::{fs, io::{self, Write}};
+use std::fs;
 
 use crate::{
     crash, err, error,
@@ -31,7 +31,6 @@ impl Installed {
     pub fn new() -> Installed {
         let path = paths::lade_packages_installed_path();
 
-        // if the file does not exist, create it
         let file = fs::read_to_string(&path).unwrap_or_else(|e| {
             if e.kind() == std::io::ErrorKind::NotFound {
                 fs::File::create(&path).unwrap_or_else(|e| {
@@ -43,113 +42,57 @@ impl Installed {
             }
         });
 
-        if file.trim() == "" || file.trim().is_empty(){
+        if file.trim().is_empty() {
             let n = Installed {
                 last_update: chrono::Local::now().to_string(),
                 packages: Vec::new(),
             };
-            let mut file =fs::File::create(lade_packages_installed_path()).unwrap_or_else(|e| {
-                error!("Failed to create Log file", format!("Failed to create log file: {}", e));
-            });
-
-            let content = serde_json::to_string(&n).unwrap_or_else(|e| {
-                error!("Failed to create json", format!("Failed to create json: {}",e));
-            });
-
-            writeln!(file, "{}", content).unwrap_or_else(|e| {
-                error!("Failed to write to log file", format!("Failed to write to log file: {}", e));
-            });
-
+            n.save();
             return n;
         }
 
-        let installed: Installed = serde_json::from_str(&file).unwrap_or_else(|e| {
+        serde_json::from_str(&file).unwrap_or_else(|e| {
             error!("Failed to parse installed packages file", e);
-        });
-
-        installed
-
+        })
     }
 
-    pub fn is_installed(package: &str) -> bool{
-        let path = lade_packages_installed_path();
-        let content = fs::read_to_string(&path).unwrap_or_else(|e| {
-            if e.kind() == io::ErrorKind::NotFound{
-                (Installed::new());
-
-                return fs::read_to_string(&path).unwrap_or_else(|e| {
-                    error!(e, e);
-                });
-            }
-            error!(format!("Failed to read {}: {}", path.display(), e), format!("Failed to read {}: {}", path.display(), e));
-        });
-
-        
-
-        let json: Installed = serde_json::from_str(&content).unwrap_or_else(|e| {
-            error!("Failed to parse json", format!("Failed to parse json: {}\nFile: {}", e, path.display()));
-        });
-
-        for pkg in json.packages{
-            if pkg.name == package{
-                return true;
-            }
+    pub fn all_installed(&self) -> Vec<String> {
+        let mut vec = Vec::new();
+        for n in &self.packages {
+            vec.push(n.name.clone());
         }
-
-        false
+        return vec;
     }
 
-    #[allow(warnings)]
+    pub fn is_installed(package: &str) -> bool {
+        let installed = Installed::new();
+        installed.packages.iter().any(|pkg| pkg.name == package)
+    }
+
     pub fn search_package(package: &str) -> Option<Package> {
-        let content = fs::read_to_string(lade_packages_installed_path()).unwrap_or_else(|e| {
-            error!("Failed to read installed.json", e);
-        });
-
-        let json: Installed = serde_json::from_str(&content).unwrap_or_else(|e| {
-            error!("Failed to parse installed.json", e);
-        });
-
-        for n in json.packages {
-            if n.name == package {
-                return Some(n);
-            }
-        }
-
-        None
+        let installed = Installed::new();
+        installed
+            .packages
+            .into_iter()
+            .find(|pkg| pkg.name == package)
     }
 
     pub fn add_package(&mut self, package: Package) {
         self.packages.push(package);
+        self.save();
+    }
+
+    pub fn remove_package_by_name(&mut self, package_name: &str) {
+        self.packages.retain(|pkg| pkg.name != package_name);
+        self.save();
+    }
+
+    pub fn save(&self) {
         let json = serde_json::to_string(&self).unwrap_or_else(|e| {
             error!(e);
         });
         fs::write(lade_packages_installed_path(), json).unwrap_or_else(|_| {
             error!("Failed to write file", "Failed to write file");
-        });
-    }
-
-    pub fn remove_package(&mut self, package: Package) {
-        let mut num = 0usize;
-        for s in self.packages.clone() {
-            if s == package {
-                self.packages.remove(num);
-            }
-            num += 1;
-        }
-
-        let json = serde_json::to_string(&self).unwrap_or_else(|e| {
-            error!(e, e);
-        });
-        fs::write(lade_packages_installed_path(), json).unwrap_or_else(|e| {
-            if e.kind() == io::ErrorKind::NotFound{
-                fs::File::create(lade_packages_installed_path()).unwrap_or_else(|e| {
-                    error!("Failed to create file", format!("Failed to create log file: {}", e), 4);
-                });
-            }
-            error!(
-                "Failed to remove package: Failed to write installed.json file",
-                format!("Failed to write installed.json file ({})", e)
-            );
         });
     }
 }

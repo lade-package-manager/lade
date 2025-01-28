@@ -1,5 +1,5 @@
 use crate::paths::{lade_bin_path, lade_build_path};
-use crate::{crash, err, log, write_log};
+use crate::{crash, err, info, log, write_log};
 use std::fs;
 use std::io::{BufRead, BufReader};
 use std::path::Path;
@@ -63,7 +63,7 @@ fn unzip_file_lade<P: AsRef<Path>>(path: P) {
     }
 }
 
-pub fn unzip_and_install_lade<P: AsRef<Path>>(path: P, repo: &str) {
+pub fn unzip_and_install_lade<P: AsRef<Path>>(path: P, repo: &str, pkgname: &str) {
     unzip_file_lade(&path);
 
     let install_sh = lade_build_path().join("install.sh");
@@ -111,4 +111,5 @@ pub fn unzip_and_install_lade<P: AsRef<Path>>(path: P, repo: &str) {
     }
 
     chmod!(lade_bin_path().join(exec_name.trim()));
+    info!(format!("{} is installed now!", pkgname));
 }

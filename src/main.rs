@@ -1,10 +1,14 @@
 use clap::{Parser, Subcommand};
+mod check;
+mod clean;
+mod consts;
 mod dependencies;
 mod download_file;
 mod exe_name;
 mod install;
 mod install_from_git;
 mod installed_structs;
+mod list;
 mod macros;
 mod package_list_structs;
 mod package_toml_for_download;
@@ -14,6 +18,8 @@ mod search;
 mod search_package;
 mod unzip_file;
 mod update;
+mod upgrade;
+mod upgrade_self;
 mod urls;
 
 #[derive(Parser)]
@@ -29,11 +35,10 @@ enum Subcommands {
     Update,
     List,
     Search { query: String },
-    Info { package: String },
     Upgrade,
-    Config,
     Clean,
     Check,
+    Autoclean,
 }
 
 fn main() {
@@ -52,25 +57,22 @@ fn main() {
             update::update();
         }
         Subcommands::List => {
-            todo!("Listing installed packages");
+            list::list();
         }
         Subcommands::Search { query } => {
             search::search_package(&query);
         }
-        Subcommands::Info { package } => {
-            todo!("Getting info for package: {}", package);
-        }
         Subcommands::Upgrade => {
-            todo!("Upgrading all packages");
-        }
-        Subcommands::Config => {
-            todo!("Getting configuration");
+            upgrade::upgrade();
         }
         Subcommands::Clean => {
-            todo!("Cleaning up cache");
+            clean::clean();
         }
         Subcommands::Check => {
-            todo!("Checking for updates");
+            check::check();
+        }
+        Subcommands::Autoclean => {
+            todo!("Autocleaning packages")
         }
     }
 }
