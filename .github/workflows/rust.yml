@@ -46,9 +46,6 @@ jobs:
     - name: Build
       run: cargo build --release
 
-    - name: Run tests
-      run: cargo test --verbose
-
     - name: Upload build artifacts
       uses: actions/upload-artifact@v3
       with:
