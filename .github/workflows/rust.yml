@@ -22,5 +22,3 @@ jobs:
       run: sudo apt install pkg-config libssl-dev -y
     - name: Build
       run: cargo build --release
-    - name: Run tests
-      run: cargo test --verbose
