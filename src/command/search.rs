@@ -22,8 +22,7 @@ pub fn search_package(package: &str) {
             println!("Language: {}", result.language);
             println!("Capacity: {}", result.capacity);
             if !result.dependencies.is_empty()
-                || result.dependencies != "None"
-                || result.dependencies != ""
+                && result.dependencies != "None"
             {
                 println!("Dependencies: {}", result.dependencies);
             }
