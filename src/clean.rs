@@ -16,48 +16,47 @@ pub fn clean() {
         .trim()
         .to_lowercase();
 
-    if matches!(input.as_str(), "y" | "yes") {
-        let cache = lade_cache_path();
-        let build = lade_build_path();
-        let log = lade_log_path();
-        let removes = [cache, build, log];
-
-        for dirs in removes {
-            if dirs.is_dir() {
-                if dirs.exists() {
-                    fs::remove_dir_all(&dirs).unwrap_or_else(|e| {
-                        error!(
-                            format!("Failed to remove {}: {}", dirs.display(), e),
-                            format!("Failed to remove {}: {}", dirs.display(), e)
-                        );
-                    });
-                }
-
-                fs::create_dir_all(&dirs).unwrap_or_else(|e| {
-                    error!(
-                        format!("Failed to create {}: {}", dirs.display(), e),
-                        format!("Failed to create {}: {}", dirs.display(), e)
-                    );
-                });
-            } else {
-                if dirs.exists() {
-                    fs::remove_file(&dirs).unwrap_or_else(|e| {
-                        error!(
-                            format!("Failed to remove {}: {}", dirs.display(), e),
-                            format!("Failed to remove {}: {}", dirs.display(), e)
-                        );
-                    });
-                }
-                fs::File::create(&dirs).unwrap_or_crash_by_status(404, |e| {
-                    err!(format!(
-                        "Failed to create log file! Please create {}! {}",
-                        dirs.display(),
-                        e
-                    ));
-                });
-            }
-        }
-    } else {
+    if !matches!(input.as_str(), "y" | "yes") {
         println!("clean is canceled");
+        return;
+    }
+
+    let cache = lade_cache_path();
+    let build = lade_build_path();
+    let log = lade_log_path();
+    let removes = [cache, build, log];
+
+    for dirs in removes {
+        if dirs.exists() {
+            let remove_item = if dirs.is_dir() {
+                fs::remove_dir_all
+            } else {
+                fs::remove_file
+            };
+
+            remove_item(&dirs).unwrap_or_else(|e| {
+                error!(
+                    format!("Failed to remove {}: {}", dirs.display(), e),
+                    format!("Failed to remove {}: {}", dirs.display(), e)
+                );
+            });
+        }
+
+        if dirs.is_dir() {
+            fs::create_dir_all(&dirs).unwrap_or_else(|e| {
+                error!(
+                    format!("Failed to create {}: {}", dirs.display(), e),
+                    format!("Failed to create {}: {}", dirs.display(), e)
+                );
+            });
+        } else {
+            fs::File::create(&dirs).unwrap_or_crash_by_status(404, |e| {
+                err!(format!(
+                    "Failed to create log file! Please create {}! {}",
+                    dirs.display(),
+                    e
+                ));
+            });
+        }
     }
 }
