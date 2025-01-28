@@ -40,34 +40,16 @@ fn main() {
     let args = Cli::parse();
 
     match args.commands {
-        Subcommands::Install { mut package } => {
-            install::install(&mut package).unwrap();
-        }
-        Subcommands::Remove { package } => {
-            remove::remove(&package).unwrap_or_else(|e| {
-                error!(format!("Error: {}", e), e);
-            });
-        }
-        Subcommands::Update => {
-            update::update();
-        }
-        Subcommands::List => {
-            list::list();
-        }
-        Subcommands::Search { query } => {
-            search::search_package(&query);
-        }
-        Subcommands::Upgrade => {
-            upgrade::upgrade();
-        }
-        Subcommands::Clean => {
-            clean::clean();
-        }
-        Subcommands::Check => {
-            check::check();
-        }
-        Subcommands::Autoclean => {
-            todo!("Autocleaning packages")
-        }
+        Subcommands::Install { mut package } => install::install(&mut package).unwrap(),
+        Subcommands::Remove { package } => remove::remove(&package).unwrap_or_else(|e| {
+            error!(format!("Error: {}", e), e);
+        }),
+        Subcommands::Update => update::update(),
+        Subcommands::List => list::list(),
+        Subcommands::Search { query } => search::search_package(&query),
+        Subcommands::Upgrade => upgrade::upgrade(),
+        Subcommands::Clean => clean::clean(),
+        Subcommands::Check => check::check(),
+        Subcommands::Autoclean => todo!("Autocleaning packages"),
     }
 }
