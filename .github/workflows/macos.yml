@@ -1,0 +1,27 @@
+name: Weekly macOS Rust Build
+
+on:
+  schedule:
+    # 毎週金曜日の午後3時 (UTC)
+    - cron: "0 15 * * 5"
+
+jobs:
+  build:
+    runs-on: macos-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Rust
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: stable
+        override: true
+
+    - name: Build project
+      run: cargo build --release
+
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: lade
+        path: target/release/
