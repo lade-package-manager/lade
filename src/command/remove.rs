@@ -27,7 +27,7 @@ pub fn remove(package: &str) -> Result<(), Box<dyn Error>> {
             let wa = search_package(&pkg.name);
             if let Some(p) = wa.lade {
                 let n = solve_dependencies(&p.dependencies);
-                if n.len() != 0 {
+                if !n.is_empty() {
                     info!(format!("{} packages were installed for {} but are no longer needed. Use `lade autoclean` to remove them", n.len(), p.name));
                 }
             } else if let Some(o) = wa.rade {
@@ -40,7 +40,7 @@ pub fn remove(package: &str) -> Result<(), Box<dyn Error>> {
                     .collect::<Vec<String>>();
                 let v = solve_dependencies(&vector);
 
-                if v.len() != 0 {
+                if !v.is_empty() {
                     info!(format!("{} packages were installed for {} but are no longer needed. Use `lade autoclean` to remove them", v.len(), pkg.name));
                 }
             }

@@ -15,21 +15,19 @@ pub struct LRPackage {
 pub fn search_package(package: &str) -> LRPackage {
     let lade_result = search_package_lade(package);
     if let Some(result) = lade_result {
-        return LRPackage {
+        LRPackage {
             lade: Some(result),
             rade: None,
-        };
+        }
+    } else if let Some(s) = search_package_rade(package) {
+        LRPackage {
+            lade: None,
+            rade: Some(s),
+        }
     } else {
-        if let Some(s) = search_package_rade(package) {
-            return LRPackage {
-                lade: None,
-                rade: Some(s),
-            };
-        } else {
-            return LRPackage {
-                lade: None,
-                rade: None,
-            };
+        LRPackage {
+            lade: None,
+            rade: None,
         }
     }
 }

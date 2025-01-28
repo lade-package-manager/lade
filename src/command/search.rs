@@ -62,13 +62,7 @@ pub fn search_package(package: &str) {
 
         if !result.dependencies.is_empty() {
             print!("Dependencies: ");
-            for dependency in &result.dependencies {
-                if dependency == result.dependencies.last().unwrap() {
-                    print!("{}", dependency);
-                } else {
-                    print!("{}, ", dependency);
-                }
-            }
+            println!("{}", result.dependencies.join(", "));
         }
         println!();
     }

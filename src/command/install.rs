@@ -16,7 +16,7 @@ pub fn install(packages: &mut Vec<String>) -> Result<(), Box<dyn std::error::Err
     let resolved_dependencies = resolve_dependencies(packages)?;
 
     packages.iter().for_each(|f| {
-        if Installed::is_installed(&f) {
+        if Installed::is_installed(f) {
             info!(format!(
                 "Package {} is already installed. Reinstalling...",
                 f

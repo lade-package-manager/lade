@@ -10,7 +10,7 @@ macro_rules! exec_shellscript {
         if $word.first().unwrap() != &"__install_end__" {
             let mut child = std::process::Command::new($word.first().unwrap())
                 .args($word.iter().skip(1))
-                .current_dir(crate::paths::lade_build_path())
+                .current_dir($crate::paths::lade_build_path())
                 .spawn()
                 .unwrap();
             child.wait().unwrap();
@@ -54,7 +54,7 @@ fn unzip_file_lade<P: AsRef<Path>>(path: P) {
         } else {
             if let Some(p) = outpath.parent() {
                 if !p.exists() {
-                    fs::create_dir_all(&p).unwrap();
+                    fs::create_dir_all(p).unwrap();
                 }
             }
             let mut outfile = fs::File::create(&outpath).unwrap();

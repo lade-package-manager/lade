@@ -113,7 +113,7 @@ macro_rules! crash {
 macro_rules! write_log {
     ($content: expr) => {{
         use std::io::Write;
-        let path = crate::paths::lade_log_path();
+        let path = $crate::paths::lade_log_path();
         let content = format!("----------------\n{}\n", $content);
         let mut file = std::fs::OpenOptions::new()
             .write(true)
@@ -196,7 +196,7 @@ macro_rules! log {
 /// ```
 macro_rules! error {
     ($error: expr, $error_code: expr) => {{
-        use crate::{crash, err, write_log};
+        use $crate::{crash, err, write_log};
 
         err!($error);
         write_log!(format!(
@@ -209,7 +209,7 @@ macro_rules! error {
     }};
 
     ($error: expr) => {{
-        use crate::{crash, err, write_log};
+        use $crate::{crash, err, write_log};
 
         err!($error);
         write_log!(format!(
@@ -236,19 +236,19 @@ macro_rules! error {
 }
 
 pub trait UnwrapOrCrash<T, E> {
-    fn unwrap_or_crash<F: FnOnce(E) -> ()>(self, f: F) -> T;
-    fn unwrap_or_crash_by_status<F: FnOnce(E) -> ()>(self, status: i32, f: F) -> T;
+    fn unwrap_or_crash<F: FnOnce(E)>(self, f: F) -> T;
+    fn unwrap_or_crash_by_status<F: FnOnce(E)>(self, status: i32, f: F) -> T;
 }
 
 impl<T, E> UnwrapOrCrash<T, E> for Result<T, E> {
-    fn unwrap_or_crash<F: FnOnce(E) -> ()>(self, f: F) -> T {
+    fn unwrap_or_crash<F: FnOnce(E)>(self, f: F) -> T {
         self.unwrap_or_else(|e| {
             f(e);
             crash!();
         })
     }
 
-    fn unwrap_or_crash_by_status<F: FnOnce(E) -> ()>(self, status: i32, f: F) -> T {
+    fn unwrap_or_crash_by_status<F: FnOnce(E)>(self, status: i32, f: F) -> T {
         self.unwrap_or_else(|e| {
             f(e);
             crash!(status);
