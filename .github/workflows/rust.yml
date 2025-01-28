@@ -49,5 +49,5 @@ jobs:
     - name: Upload build artifacts
       uses: actions/upload-artifact@v3
       with:
-        name: build-artifacts
+        name: lade
         path: target/release/
