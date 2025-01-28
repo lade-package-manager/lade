@@ -56,14 +56,6 @@ impl Installed {
         })
     }
 
-    pub fn all_installed(&self) -> Vec<String> {
-        let mut vec = Vec::new();
-        for n in &self.packages {
-            vec.push(n.name.clone());
-        }
-        return vec;
-    }
-
     pub fn is_installed(package: &str) -> bool {
         let installed = Installed::new();
         installed.packages.iter().any(|pkg| pkg.name == package)
