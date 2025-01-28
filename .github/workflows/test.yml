@@ -35,8 +35,8 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-cargo-index-
     - name: Update apt repository
-      run: apt update
+      run: sudo apt update
     - name: Install dependencies
-      run: apt install -y pkg-config libssl-dev
+      run: sudo apt install -y pkg-config libssl-dev
     - name: test project
       run: cargo test
