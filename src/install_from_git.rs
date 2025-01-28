@@ -2,6 +2,7 @@ use std::{fs, process::Stdio};
 
 use crate::{
     crash, err, info,
+    macros::UnwrapOrCrash,
     paths::{lade_bin_path, lade_build_path},
     write_log,
 };
@@ -33,14 +34,13 @@ pub fn install_from_git(package: &str, url: &str) -> Result<(), Box<dyn std::err
                 .stdout(Stdio::null())
                 .stderr(Stdio::null())
                 .status()
-                .unwrap_or_else(|e| {
+                .unwrap_or_crash(|e| {
                     err!("Failed to run install script. please see lade log file", e);
                     write_log!(format!(
                         "date: {}\nerror: Failed to run install script\nError_code: {}",
                         chrono::Local::now(),
                         e
                     ));
-                    crash!();
                 });
         } else if !find {
             err!("Failed to find install script");
@@ -64,14 +64,13 @@ pub fn install_from_git(package: &str, url: &str) -> Result<(), Box<dyn std::err
         crash!();
     }
 
-    fs::rename(exec, lade_bin_path().join(package)).unwrap_or_else(|e| {
+    fs::rename(exec, lade_bin_path().join(package)).unwrap_or_crash(|e| {
         err!("Failed to copy executable file", e);
         write_log!(format!(
             "date: {}\nerror: Failed to copy executable file\n Error_code: {}",
             chrono::Local::now(),
             e
         ));
-        crash!();
     });
 
     info!(format!("{} is installed now!", package));

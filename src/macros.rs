@@ -234,3 +234,24 @@ macro_rules! error {
         crash!($exit);
     }};
 }
+
+pub trait UnwrapOrCrash<T, E> {
+    fn unwrap_or_crash<F: FnOnce(E) -> ()>(self, f: F) -> T;
+    fn unwrap_or_crash_by_status<F: FnOnce(E) -> ()>(self, status: i32, f: F) -> T;
+}
+
+impl<T, E> UnwrapOrCrash<T, E> for Result<T, E> {
+    fn unwrap_or_crash<F: FnOnce(E) -> ()>(self, f: F) -> T {
+        self.unwrap_or_else(|e| {
+            f(e);
+            crash!();
+        })
+    }
+
+    fn unwrap_or_crash_by_status<F: FnOnce(E) -> ()>(self, status: i32, f: F) -> T {
+        self.unwrap_or_else(|e| {
+            f(e);
+            crash!(status);
+        })
+    }
+}

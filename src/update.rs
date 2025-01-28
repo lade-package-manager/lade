@@ -12,7 +12,8 @@
 use colored::Colorize;
 
 use crate::{
-    crash, err, info,
+    err, info,
+    macros::UnwrapOrCrash,
     paths::{lade_package_list_path_dir, rade_package_list_path},
 };
 
@@ -20,9 +21,8 @@ pub fn update() {
     info!("Updating package lists");
 
     if rade_package_list_path().exists() {
-        std::fs::remove_dir_all(rade_package_list_path()).unwrap_or_else(|e| {
+        std::fs::remove_dir_all(rade_package_list_path()).unwrap_or_crash(|e| {
             err!("Failed to remove package list directory: ", e);
-            crash!();
         });
     }
 
@@ -30,15 +30,13 @@ pub fn update() {
         "https://github.com/rade-package-manager/rade-package-list",
         rade_package_list_path(),
     )
-    .unwrap_or_else(|e| {
+    .unwrap_or_crash(|e| {
         err!("Failed to update package list", e);
-        crash!();
     });
 
     if lade_package_list_path_dir().exists() {
-        std::fs::remove_dir_all(lade_package_list_path_dir()).unwrap_or_else(|e| {
+        std::fs::remove_dir_all(lade_package_list_path_dir()).unwrap_or_crash(|e| {
             err!("Failed to retrieve package list.\nPlease run `lade update` to retrive package list. ", e);
-            crash!();
         });
     }
 
@@ -47,14 +45,13 @@ pub fn update() {
         "https://github.com/kaedehito/lade-package-list/",
         lade_package_list_path_dir(),
     )
-    .unwrap_or_else(|e| {
+    .unwrap_or_crash(|e| {
         eprintln!(
             "{} {}: {}",
             ">>>".red().bold(),
             "Failed to update package list".bold(),
             e
         );
-        crash!();
     });
 
     println!("{} {}", ">>>".green().bold(), "Update complete!".bold());
