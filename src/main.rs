@@ -1,26 +1,21 @@
 use clap::{Parser, Subcommand};
-mod check;
-mod clean;
+mod command;
 mod consts;
 mod dependencies;
 mod download_file;
 mod exe_name;
-mod install;
 mod install_from_git;
 mod installed_structs;
-mod list;
 mod macros;
 mod package_list_structs;
 mod package_toml_for_download;
 mod paths;
-mod remove;
-mod search;
 mod search_package;
 mod unzip_file;
-mod update;
-mod upgrade;
 mod upgrade_self;
 mod urls;
+
+use command::*;
 
 #[derive(Parser)]
 struct Cli {
