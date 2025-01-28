@@ -17,9 +17,9 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - name: Update apt repository
-      run: apt update
+      run: sudo apt update
     - name: Install dependencies
-      run: apt install pkg_config libssl-dev -y
+      run: sudo apt install pkg_config libssl-dev -y
     - name: Build
       run: cargo build --release
     - name: Run tests
