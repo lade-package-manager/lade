@@ -2,6 +2,7 @@ use std::fs;
 
 use crate::{
     crash, err, error,
+    macros::UnwrapOrCrash,
     paths::{lade_build_path, lade_cache_path, lade_log_path},
 };
 
@@ -47,13 +48,12 @@ pub fn clean() {
                         );
                     });
                 }
-                fs::File::create(&dirs).unwrap_or_else(|e| {
+                fs::File::create(&dirs).unwrap_or_crash_by_status(404, |e| {
                     err!(format!(
                         "Failed to create log file! Please create {}! {}",
                         dirs.display(),
                         e
                     ));
-                    crash!(404);
                 });
             }
         }
