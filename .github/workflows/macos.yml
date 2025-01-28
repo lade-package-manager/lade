@@ -1,10 +1,9 @@
 name: Weekly macOS Rust Build
 
-#on:
-  #schedule:
-    # 毎週金曜日の午後3時 (UTC)
-    # テストの為に今だけビルドする
-    #- cron: "0 15 * * 5"
+on:
+  workflow_dispatch: # 手動トリガー
+  # schedule:       # 定期実行（必要に応じて有効化）
+  #   - cron: "0 15 * * 5" # 毎週金曜日午後3時（UTC）
 
 jobs:
   build:
@@ -12,6 +11,7 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+
     - name: Set up Rust
       uses: actions-rs/toolchain@v1
       with:
@@ -24,5 +24,6 @@ jobs:
     - name: Upload build artifacts
       uses: actions/upload-artifact@v3
       with:
-        name: lade
-        path: target/release/
+        name: lade-weekly-macos-build
+        path: |
+          target/release/lade # 必要なファイルを指定
