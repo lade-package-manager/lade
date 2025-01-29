@@ -15,8 +15,6 @@ mod unzip_file;
 mod upgrade_self;
 mod urls;
 
-use command::*;
-
 #[derive(Parser)]
 struct Cli {
     #[command(subcommand)]
@@ -40,16 +38,16 @@ fn main() {
     let args = Cli::parse();
 
     match args.commands {
-        Subcommands::Install { mut package } => install::install(&mut package).unwrap(),
-        Subcommands::Remove { package } => remove::remove(&package).unwrap_or_else(|e| {
+        Subcommands::Install { mut package } => command::install(&mut package).unwrap(),
+        Subcommands::Remove { package } => command::remove(&package).unwrap_or_else(|e| {
             error!(format!("Error: {}", e), e);
         }),
-        Subcommands::Update => update::update(),
-        Subcommands::List => list::list(),
-        Subcommands::Search { query } => search::search_package(&query),
-        Subcommands::Upgrade => upgrade::upgrade(),
-        Subcommands::Clean => clean::clean(),
-        Subcommands::Check => check::check(),
+        Subcommands::Update => command::update(),
+        Subcommands::List => command::list(),
+        Subcommands::Search { query } => command::search(&query),
+        Subcommands::Upgrade => command::upgrade(),
+        Subcommands::Clean => command::clean(),
+        Subcommands::Check => command::check(),
         Subcommands::Autoclean => todo!("Autocleaning packages"),
     }
 }

@@ -7,7 +7,7 @@ use crate::{
     consts::{LADE_VERSION, VERSION},
     error, info,
     paths::lade_cache_path,
-    update, upgrade_self,
+    upgrade_self,
 };
 
 #[derive(Serialize, Deserialize)]
@@ -19,7 +19,7 @@ struct Upgrade {
 }
 
 pub fn upgrade() {
-    update::update();
+    super::update();
 
     info!("Downloading upgrade info file");
     download_file(
