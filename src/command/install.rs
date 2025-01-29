@@ -11,7 +11,7 @@ use crate::{
 use colored::*;
 use std::path::PathBuf;
 
-pub fn install(packages: &mut Vec<String>) -> Result<(), Box<dyn std::error::Error>> {
+pub fn install(packages: &mut [String]) -> Result<(), Box<dyn std::error::Error>> {
     info!("Resolving dependencies...");
     let resolved_dependencies = resolve_dependencies(packages)?;
 
@@ -24,23 +24,24 @@ pub fn install(packages: &mut Vec<String>) -> Result<(), Box<dyn std::error::Err
         }
     });
 
-    let mut num = 0;
-    for package in &resolved_dependencies {
-        if num == 4 {
-            println!();
-        }
-        num += 1;
+    resolved_dependencies
+        .iter()
+        .enumerate()
+        .for_each(|(num, package)| {
+            if num == 4 {
+                println!();
+            }
 
-        let pkg = search_package(package);
+            let pkg = search_package(package);
 
-        if let Some(pkg_lade) = pkg.lade {
-            print!("{} (v{}) ", pkg_lade.name, pkg_lade.version.bright_yellow());
-        }
+            if let Some(pkg_lade) = pkg.lade {
+                print!("{} (v{}) ", pkg_lade.name, pkg_lade.version.bright_yellow());
+            }
 
-        if let Some(pkg_rade) = pkg.rade {
-            print!("{} ({}) ", package, pkg_rade.version.bright_yellow());
-        }
-    }
+            if let Some(pkg_rade) = pkg.rade {
+                print!("{} ({}) ", package, pkg_rade.version.bright_yellow());
+            }
+        });
     println!();
 
     println!("Do you want to proceed with installation? [Y/n]");
@@ -75,7 +76,7 @@ fn resolve_dependencies(packages: &[String]) -> Result<Vec<String>, Box<dyn std:
         dependencies.extend(package_dependencies);
     }
 
-    solve_dependencies(&mut dependencies);
+    let dependencies = solve_dependencies(&dependencies);
 
     Ok(dependencies)
 }
@@ -176,26 +177,24 @@ fn install_package(
 }
 
 fn install_from_lade(pkg_lade: PackageJson) -> Result<Vec<String>, Box<dyn std::error::Error>> {
-    let mut dependencies = Vec::new();
-    for dependency in pkg_lade.dependencies {
-        if search_package_lade(&dependency).is_some() || search_package_rade(&dependency).is_some()
-        {
-            dependencies.push(dependency);
-        }
-    }
+    let dependencies = pkg_lade
+        .dependencies
+        .into_iter()
+        .filter(|dep| search_package_lade(dep).is_some() || search_package_rade(dep).is_some())
+        .collect::<Vec<_>>();
 
-    solve_dependencies(&mut dependencies);
+    let dependencies = solve_dependencies(&dependencies);
     Ok(dependencies)
 }
 
 fn install_from_rade(pkg_rade: RadePackage) -> Result<Vec<String>, Box<dyn std::error::Error>> {
-    let mut dependencies = pkg_rade
+    let dependencies = pkg_rade
         .dependencies
         .split(',')
         .map(str::to_string)
         .collect::<Vec<_>>();
 
-    solve_dependencies(&mut dependencies);
+    let dependencies = solve_dependencies(&dependencies);
     Ok(dependencies)
 }
 
