@@ -1,4 +1,4 @@
-use std::{fs, process::Stdio};
+use std::{fs, ops::ControlFlow, process::Stdio};
 
 use crate::{
     crash, err, info,
@@ -8,7 +8,6 @@ use crate::{
 };
 
 pub fn install_from_git(package: &str, url: &str) -> Result<(), Box<dyn std::error::Error>> {
-
     if lade_build_path().exists() {
         std::fs::remove_dir_all(lade_build_path()).unwrap_or_else(|e| {
             err!("Failed to remove build directory: {}", e);
@@ -24,11 +23,8 @@ pub fn install_from_git(package: &str, url: &str) -> Result<(), Box<dyn std::err
     let install_rade = lade_build_path().join(".build.lade.sh");
     let installs = vec![install_lade, install_comrade, install_rade, install_sh];
 
-    let mut find = false;
-
-    installs.into_iter().for_each(|install| {
+    let installed = installs.into_iter().try_for_each(|install| {
         if install.exists() {
-            find = true;
             std::process::Command::new("sh")
                 .arg(install)
                 .current_dir(lade_build_path())
@@ -43,10 +39,12 @@ pub fn install_from_git(package: &str, url: &str) -> Result<(), Box<dyn std::err
                         e
                     ));
                 });
+            return ControlFlow::Break(());
         }
+        ControlFlow::Continue(())
     });
 
-    if !find {
+    if let ControlFlow::Continue(_) = installed {
         err!("Failed to find install script");
         write_log!(format!(
             "date: {}\nerror: Failed to find install script\n repository: {}",
@@ -58,9 +56,9 @@ pub fn install_from_git(package: &str, url: &str) -> Result<(), Box<dyn std::err
 
     let exec = lade_build_path().join(package);
     if !exec.exists() {
-        err!("Failed to find executable file");
+        err!("Couldn't find the executable file");
         write_log!(format!(
-            "date: {}\nerror: Failed to find executable\n repository: {}",
+            "date: {}\nerror: Failed to find the executable\n repository: {}",
             chrono::Local::now(),
             package
         ));
@@ -68,7 +66,7 @@ pub fn install_from_git(package: &str, url: &str) -> Result<(), Box<dyn std::err
     }
 
     fs::rename(exec, lade_bin_path().join(package)).unwrap_or_crash(|e| {
-        err!("Failed to copy executable file", e);
+        err!("Failed to move executable file", e);
         write_log!(format!(
             "date: {}\nerror: Failed to copy executable file\n Error_code: {}",
             chrono::Local::now(),
