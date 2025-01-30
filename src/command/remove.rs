@@ -3,8 +3,8 @@ use std::{error::Error, fs};
 use colored::Colorize;
 
 use crate::{
-    crash, dependencies::solve_dependencies, err, info, installed_structs::Installed,
-    paths::lade_bin_path, search_package::search_package,
+    crash, dependencies, err, info, installed_structs::Installed, paths::lade_bin_path,
+    search_package,
 };
 
 pub fn remove(package: &str) -> Result<(), Box<dyn Error>> {
@@ -24,9 +24,9 @@ pub fn remove(package: &str) -> Result<(), Box<dyn Error>> {
 
             info!("The package deletion was successfully completed without incident!");
 
-            let wa = search_package(&pkg.name);
+            let wa = search_package::search(&pkg.name);
             if let Some(p) = wa.lade {
-                let n = solve_dependencies(&p.dependencies);
+                let n = dependencies::solve(&p.dependencies);
                 if !n.is_empty() {
                     info!("{} packages were installed for {} but are no longer needed. Use `lade autoclean` to remove them", n.len(), p.name);
                 }
@@ -38,7 +38,7 @@ pub fn remove(package: &str) -> Result<(), Box<dyn Error>> {
                     .iter()
                     .map(|f| f.to_string())
                     .collect::<Vec<String>>();
-                let v = solve_dependencies(&vector);
+                let v = dependencies::solve(&vector);
 
                 if !v.is_empty() {
                     info!("{} packages were installed for {} but are no longer needed. Use `lade autoclean` to remove them", v.len(), pkg.name);

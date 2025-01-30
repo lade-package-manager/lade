@@ -1,10 +1,10 @@
-use crate::search_package::{search_package_lade, search_package_rade};
+use crate::search_package;
 use colored::Colorize;
 
 pub fn search_package(package: &str) {
-    let lade_result = search_package_lade(package);
+    let lade_result = search_package::lade(package);
     if lade_result.is_none() {
-        let rade_result = search_package_rade(package);
+        let rade_result = search_package::rade(package);
         if rade_result.is_none() {
             println!("{} {}", ">>>".red().bold(), "Package not found.".bold());
         }

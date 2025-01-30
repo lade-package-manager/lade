@@ -1,8 +1,8 @@
 use std::collections::HashSet;
 
-use crate::search_package::{search_package_lade, search_package_rade};
+use crate::search_package;
 
-pub fn solve_dependencies(depends: &Vec<String>) -> Vec<String> {
+pub fn solve(depends: &Vec<String>) -> Vec<String> {
     let mut solved: Vec<String> = Vec::new();
     let mut visited: HashSet<String> = HashSet::new();
 
@@ -19,9 +19,9 @@ pub fn solve_dependencies(depends: &Vec<String>) -> Vec<String> {
             visited.insert(dependency.clone());
 
             // Ladeで検索
-            if let Some(pkg_lade) = search_package_lade(dependency) {
+            if let Some(pkg_lade) = search_package::lade(dependency) {
                 resolve(&pkg_lade.dependencies, solved, visited);
-            } else if let Some(pkg_rade) = search_package_rade(dependency) {
+            } else if let Some(pkg_rade) = search_package::rade(dependency) {
                 // Radeの依存関係をカンマで分割してリスト化
                 let rade_dependencies: Vec<String> = pkg_rade
                     .dependencies
