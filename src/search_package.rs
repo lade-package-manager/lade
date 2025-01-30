@@ -15,14 +15,14 @@ pub struct LRPackage {
     pub rade: Option<RadePackage>,
 }
 
-pub fn search_package(package: &str) -> LRPackage {
-    let lade_result = search_package_lade(package);
+pub fn search(package: &str) -> LRPackage {
+    let lade_result = self::lade(package);
     if let Some(result) = lade_result {
         LRPackage {
             lade: Some(result),
             rade: None,
         }
-    } else if let Some(s) = search_package_rade(package) {
+    } else if let Some(s) = self::rade(package) {
         LRPackage {
             lade: None,
             rade: Some(s),
@@ -35,7 +35,7 @@ pub fn search_package(package: &str) -> LRPackage {
     }
 }
 
-pub fn search_package_rade(package: &str) -> Option<RadePackage> {
+pub fn rade(package: &str) -> Option<RadePackage> {
     let dir_path = rade_package_list_path();
     let dir = fs::read_dir(&dir_path).ok()?;
 
@@ -54,7 +54,7 @@ pub fn search_package_rade(package: &str) -> Option<RadePackage> {
     None
 }
 
-pub fn search_package_lade(package: &str) -> Option<LadePackage> {
+pub fn lade(package: &str) -> Option<LadePackage> {
     let package_list_paths = [
         lade_package_list_main_path(),
         lade_package_list_extra_path(),

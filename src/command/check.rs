@@ -1,14 +1,10 @@
-use crate::{
-    info,
-    installed_structs::Installed,
-    search_package::{self},
-};
+use crate::{info, installed_structs::Installed, search_package};
 
 pub fn check() {
     let installed = Installed::new();
 
     for package in installed.packages.clone() {
-        let pkg = search_package::search_package(&package.name);
+        let pkg = search_package::search(&package.name);
 
         if let Some(packagejson) = pkg.lade {
             if package.name == packagejson.name && package.version != packagejson.version {
