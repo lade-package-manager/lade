@@ -7,7 +7,7 @@ use crate::{
     consts::{LADE_VERSION, VERSION},
     error, info,
     paths::lade_cache_path,
-    upgrade_self,
+    update, upgrade_self,
 };
 
 #[derive(Serialize, Deserialize)]
@@ -19,11 +19,11 @@ struct Upgrade {
 }
 
 pub fn upgrade() {
-    super::update();
+    update::update();
 
     info!("Downloading upgrade info file");
     download_file(
-        "https://github.com/lade-package-manager/lade/releases/download/upgrade_info/upgrade_info.json",
+        "https://github.com/kaedehito/lade/releases/download/upgrade_info/upgrade_info.json",
         lade_cache_path().join("upgrade_info.json"),
     )
     .unwrap_or_else(|e| {

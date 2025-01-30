@@ -31,11 +31,11 @@ pub fn install(packages: &mut Vec<String>) -> Result<(), Box<dyn std::error::Err
                 println!();
             }
 
-            let pkg = search_package(package);
+        let pkg = search_package(package);
 
-            if let Some(pkg_lade) = pkg.lade {
-                print!("{} (v{}) ", pkg_lade.name, pkg_lade.version.bright_yellow());
-            }
+        if let Some(pkg_lade) = pkg.lade {
+            print!("{} (v{}) ", pkg_lade.name, pkg_lade.version.bright_yellow());
+        }
 
             if let Some(pkg_rade) = pkg.rade {
                 print!("{} ({}) ", package, pkg_rade.version.bright_yellow());
@@ -79,7 +79,7 @@ fn resolve_dependencies(packages: &[String]) -> Result<Vec<String>, Box<dyn std:
         dependencies.extend(package_dependencies);
     }
 
-    let dependencies = solve_dependencies(&dependencies);
+    solve_dependencies(&mut dependencies);
 
     Ok(dependencies)
 }
