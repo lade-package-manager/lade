@@ -13,7 +13,7 @@ pub fn self_upgrade() {
         |e| {
             error!(
                 "Failed to clone lade. see lade.log",
-                format!("Failed to clone https://github.com/kaedehito/lade: {}", e)
+                format!("Failed to clone https://github.com/lade-package-manager/lade: {}", e)
             );
         },
     );

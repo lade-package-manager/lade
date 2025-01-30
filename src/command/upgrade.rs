@@ -54,9 +54,9 @@ pub fn upgrade() {
 
     if info.version != VERSION {
         upgrade_self::self_upgrade();
-    }else if info.lade_version != LADE_VERSION {
+    } else if info.lade_version != LADE_VERSION {
         upgrade_self::self_upgrade();
-    }else{
+    } else {
     }
 }
 
