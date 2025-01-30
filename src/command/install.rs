@@ -23,22 +23,25 @@ pub fn install(packages: &mut Vec<String>) -> Result<(), Box<dyn std::error::Err
     });
 
     let mut num = 0;
-    for package in &resolved_dependencies {
-        if num == 4 {
-            println!();
-        }
-        num += 1;
+    resolved_dependencies
+        .iter()
+        .enumerate()
+        .for_each(|(num, package)| {
+            if num == 4 {
+                println!();
+            }
 
-        let pkg = search_package(package);
+            let pkg = search_package(package);
 
-        if let Some(pkg_lade) = pkg.lade {
-            print!("{} (v{}) ", pkg_lade.name, pkg_lade.version.bright_yellow());
-        }
+            if let Some(pkg_lade) = pkg.lade {
+                print!("{} (v{}) ", pkg_lade.name, pkg_lade.version.bright_yellow());
+            }
 
-        if let Some(pkg_rade) = pkg.rade {
-            print!("{} ({}) ", package, pkg_rade.version.bright_yellow());
-        }
-    }
+            if let Some(pkg_rade) = pkg.rade {
+                print!("{} ({}) ", package, pkg_rade.version.bright_yellow());
+            }
+        });
+
     println!();
 
     println!("Do you want to proceed with installation? [Y/n]");
@@ -50,17 +53,14 @@ pub fn install(packages: &mut Vec<String>) -> Result<(), Box<dyn std::error::Err
 
     if user_input == "y" || user_input == "yes" {
         let mut installed = Installed::new();
-        for pkg in &resolved_dependencies {
-            // インストールされているパッケージがあれば削除
-            if let Some(existing_pkg) = Installed::search_package(&pkg) {
+        for pkg in resolved_dependencies.iter().rev() {
+            if let Some(existing_pkg) = Installed::search_package(pkg) {
                 installed.remove_package_by_name(&existing_pkg.name);
             }
+            // install package
+            install_package(&mut installed, pkg)?;
         }
 
-        // パッケージをインストール
-        for package in resolved_dependencies.into_iter().rev() {
-            install_package(&mut installed, package.as_str())?;
-        }
 
         println!("Installation completed successfully.");
     } else {
@@ -79,7 +79,7 @@ fn resolve_dependencies(packages: &[String]) -> Result<Vec<String>, Box<dyn std:
         dependencies.extend(package_dependencies);
     }
 
-    solve_dependencies(&mut dependencies);
+    let dependencies = solve_dependencies(&dependencies);
 
     Ok(dependencies)
 }
