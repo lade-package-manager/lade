@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 
 // ladeのパッケージ情報を格納するための構造体json
 #[derive(Serialize, Deserialize, Debug)]
-pub struct PackageJson {
+pub struct LadePackage {
     pub name: String,
     pub version: String,
     pub description: String,
@@ -17,7 +17,7 @@ pub struct PackageJson {
 #[derive(Serialize, Deserialize)]
 pub struct Packages {
     pub version: String,
-    pub packages: Vec<PackageJson>,
+    pub packages: Vec<LadePackage>,
 }
 
 // radeのパッケージ情報を格納するための構造体toml

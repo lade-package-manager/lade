@@ -4,11 +4,11 @@ use std::fs;
 use crate::{
     error,
     package_list_structs::{Packages, RadePackage},
-    paths::{lade_package_list_path, rade_package_list_path},
+    paths::rade_package_list_path,
 };
 
 pub fn list() {
-    let lade_packagelist = lade_package_list_path();
+    let lade_packagelist = rade_package_list_path();
     let content = fs::read_to_string(&lade_packagelist).unwrap_or_else(|e| {
         error!(
             format!("Failed to read {}", &lade_packagelist.display()),

@@ -8,6 +8,7 @@ use crate::{
 };
 
 pub fn install_from_git(package: &str, url: &str) -> Result<(), Box<dyn std::error::Error>> {
+
     if lade_build_path().exists() {
         std::fs::remove_dir_all(lade_build_path()).unwrap_or_else(|e| {
             err!("Failed to remove build directory: {}", e);
@@ -26,7 +27,7 @@ pub fn install_from_git(package: &str, url: &str) -> Result<(), Box<dyn std::err
     let mut find = false;
 
     installs.into_iter().for_each(|install| {
-        if install.exists() && !find {
+        if install.exists() {
             find = true;
             std::process::Command::new("sh")
                 .arg(install)
@@ -42,16 +43,18 @@ pub fn install_from_git(package: &str, url: &str) -> Result<(), Box<dyn std::err
                         e
                     ));
                 });
-        } else if !find {
-            err!("Failed to find install script");
-            write_log!(format!(
-                "date: {}\nerror: Failed to find install script\n repository: {}",
-                chrono::Local::now(),
-                package
-            ));
-            crash!();
         }
     });
+
+    if !find {
+        err!("Failed to find install script");
+        write_log!(format!(
+            "date: {}\nerror: Failed to find install script\n repository: {}",
+            chrono::Local::now(),
+            package
+        ));
+        crash!();
+    }
 
     let exec = lade_build_path().join(package);
     if !exec.exists() {
@@ -73,7 +76,7 @@ pub fn install_from_git(package: &str, url: &str) -> Result<(), Box<dyn std::err
         ));
     });
 
-    info!(format!("{} is installed now!", package));
+    info!("{} is installed now!", package);
 
     Ok(())
 }

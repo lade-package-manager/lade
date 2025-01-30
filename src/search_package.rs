@@ -1,14 +1,17 @@
 use crate::{
-    crash, err,
-    package_list_structs::{PackageJson, Packages, RadePackage},
-    paths::{lade_package_list_path, rade_package_list_path},
+    error,
+    package_list_structs::{LadePackage, RadePackage},
+    paths::{lade_package_list_extra_path, lade_package_list_main_path, rade_package_list_path},
 };
-use colored::*;
-use std::fs;
+use std::{
+    fs,
+    io::{BufReader, Read},
+};
+use zip::ZipArchive;
 
 #[derive(Debug)]
 pub struct LRPackage {
-    pub lade: Option<PackageJson>,
+    pub lade: Option<LadePackage>,
     pub rade: Option<RadePackage>,
 }
 
@@ -51,34 +54,70 @@ pub fn search_package_rade(package: &str) -> Option<RadePackage> {
     None
 }
 
-pub fn search_package_lade(package: &str) -> Option<PackageJson> {
-    let package_list_path = lade_package_list_path();
+pub fn search_package_lade(package: &str) -> Option<LadePackage> {
+    let package_list_paths = [
+        lade_package_list_main_path(),
+        lade_package_list_extra_path(),
+    ];
 
-    let package_lade = match fs::read_to_string(package_list_path) {
-        Ok(content) => content,
-        Err(e) => {
-            err!(format!(
-                "{}\n{}{}{}\nError code:{}",
-                "Failed to retrieve package list.".bold(),
-                "please run ".bold(),
-                "lade update ".cyan(),
-                "to retrieve package list.".bold(),
-                e
-            ));
-            crash!();
+    for package_list_path in package_list_paths {
+        if package_list_path.exists() {
+            // ZIPファイルを開く
+            let file = fs::File::open(&package_list_path).unwrap_or_else(|e| {
+                error!(
+                    format!(
+                        "Failed to open {}. Please update lade package list",
+                        package_list_path.file_name().unwrap().to_str().unwrap()
+                    ),
+                    format!(
+                        "Failed to open {}: {}",
+                        package_list_path.file_name().unwrap().to_str().unwrap(),
+                        e
+                    ),
+                    404
+                );
+            });
+
+            let reader = BufReader::new(file);
+            let mut archive = ZipArchive::new(reader).unwrap_or_else(|e| {
+                error!(
+                    "Failed to unzip archive",
+                    format!("Failed to unzip archive: {}", e)
+                );
+            });
+
+            let target_path = format!("{}/info.toml", package);
+
+            // ZIP内のファイルを探索
+            for i in 0..archive.len() {
+                let mut file = archive.by_index(i).unwrap_or_else(|e| {
+                    error!(
+                        "Failed to read archive",
+                        format!("Failed to read archive: {}", e)
+                    );
+                });
+
+                if file.name() == target_path {
+                    let mut contents = String::new();
+                    file.read_to_string(&mut contents).unwrap_or_else(|e| {
+                        error!(
+                            "Failed to read info.toml",
+                            format!("Failed to read info.toml: {}", e)
+                        );
+                    });
+
+                    let toml = toml::from_str(&contents).unwrap_or_else(|e| {
+                        error!(
+                            "Failed to parse info.toml",
+                            format!("Failed to parse info.toml: {}", e)
+                        );
+                    });
+
+                    return Some(toml);
+                }
+            }
         }
-    };
+    }
 
-    let package_json_parsed: Packages = match serde_json::from_str(&package_lade) {
-        Ok(parsed) => parsed,
-        Err(e) => {
-            err!("Failed to parse package list", e);
-            crash!();
-        }
-    };
-
-    package_json_parsed
-        .packages
-        .into_iter()
-        .find(|package_j| package_j.name == package)
+    None
 }
