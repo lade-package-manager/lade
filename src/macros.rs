@@ -58,8 +58,9 @@ macro_rules! err {
 ///
 /// This will produce a log entry with the current date and time, the error message, and the error code.
 macro_rules! info {
-    ($msg: expr) => {
-        println!("\x1b[32;1m>>>\x1b[0m \x1b[1m{}\x1b[0m", $msg);
+    ($($arg:tt)*) => {
+        let fmt = format!($($arg)*);
+        println!("\x1b[32;1m>>> \x1b[0m\x1b[1m{fmt}\x1b[0m");
     };
 }
 
@@ -112,6 +113,7 @@ macro_rules! crash {
 /// If the log file cannot be opened or written to, an error message will be logged and the program will crash.
 macro_rules! write_log {
     ($content: expr) => {{
+        use crate::{crash, err};
         use std::io::Write;
         let path = $crate::paths::lade_log_path();
         let content = format!("----------------\n{}\n", $content);
@@ -149,14 +151,15 @@ macro_rules! write_log {
 ///
 /// This will produce a log entry with the current date and time, the error message, and the error code.
 macro_rules! log {
-    ($error: expr, $error_code: expr) => {
+    ($error: expr, $error_code: expr) => {{
+        use crate::write_log;
         write_log!(format!(
             "date: {}\nerror: {}\nerror_code: {}",
             chrono::Local::now(),
             $error,
             $error_code
         ));
-    };
+    }};
 }
 
 #[macro_export]

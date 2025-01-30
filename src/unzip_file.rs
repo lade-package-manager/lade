@@ -111,5 +111,5 @@ pub fn unzip_and_install_lade<P: AsRef<Path>>(path: P, repo: &str, pkgname: &str
     }
 
     chmod!(lade_bin_path().join(exec_name.trim()));
-    info!(format!("{} is installed now!", pkgname));
+    info!("{} is installed now!", pkgname);
 }

@@ -9,7 +9,7 @@ pub fn self_upgrade() {
     info!("Updating lade");
 
     info!("Cloning lade");
-    git2::Repository::clone("https://github.com/lade-package-manager/lade", lade_build_path()).unwrap_or_else(
+    git2::Repository::clone("https://github.com/kaedehito/lade", lade_build_path()).unwrap_or_else(
         |e| {
             error!(
                 "Failed to clone lade. see lade.log",
@@ -66,7 +66,7 @@ fn check_dependencies() {
                     depen
                 ));
             }
-            info!(depen);
+            info!("{depen}");
         }
     } else if !cfg!(target_os = "windows") {
         for dep in depend {
@@ -82,7 +82,7 @@ fn check_dependencies() {
                     dep
                 ));
             }
-            info!(dep);
+            info!("{dep}");
         }
     } else {
         for dep in depend {
@@ -98,7 +98,7 @@ fn check_dependencies() {
                     dep
                 ));
             }
-            info!(dep);
+            info!("{dep}");
         }
     }
 }

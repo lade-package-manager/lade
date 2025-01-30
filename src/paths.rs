@@ -5,12 +5,20 @@ fn lade_config_dir() -> Option<PathBuf> {
     dirs_next::config_dir().map(|p| p.join("lade"))
 }
 
-pub fn lade_package_list_path() -> PathBuf {
+pub fn lade_package_list_main_path() -> PathBuf {
     lade_config_dir()
         .unwrap()
         .join("packagelists")
         .join("lade")
-        .join("package_list.json")
+        .join("main.zip")
+}
+
+pub fn lade_package_list_extra_path() -> PathBuf {
+    lade_config_dir()
+        .unwrap()
+        .join("packagelists")
+        .join("lade")
+        .join("extra.zip")
 }
 
 pub fn lade_package_list_path_dir() -> PathBuf {
@@ -40,6 +48,10 @@ pub fn lade_log_path() -> PathBuf {
 pub fn lade_packages_installed_path() -> PathBuf {
     lade_config_dir()
         .unwrap()
-        .join("packages")
+        .join("installed")
         .join("installed.json")
+}
+
+pub fn lade_packages_installed_dir_path() -> PathBuf {
+    lade_config_dir().unwrap().join("installed")
 }

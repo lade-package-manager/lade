@@ -3,7 +3,7 @@ use std::fs;
 
 use crate::{
     crash, err, error,
-    paths::{self, lade_packages_installed_path},
+    paths::{self, lade_packages_installed_dir_path, lade_packages_installed_path},
     write_log,
 };
 
@@ -33,6 +33,10 @@ impl Installed {
 
         let file = fs::read_to_string(&path).unwrap_or_else(|e| {
             if e.kind() == std::io::ErrorKind::NotFound {
+                fs::create_dir_all(lade_packages_installed_dir_path()).unwrap_or_else(|e| {
+                    error!("Failed to create installed packages dir", &e);
+                });
+
                 fs::File::create(&path).unwrap_or_else(|e| {
                     error!("Failed to create installed packages file", &e);
                 });
