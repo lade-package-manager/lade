@@ -22,7 +22,6 @@ pub fn install(packages: &mut Vec<String>) -> Result<(), Box<dyn std::error::Err
         }
     });
 
-    let mut num = 0;
     resolved_dependencies
         .iter()
         .enumerate()
