@@ -23,7 +23,7 @@ pub fn upgrade() {
 
     info!("Downloading upgrade info file");
     download_file(
-        "https://github.com/kaedehito/lade/releases/download/upgrade_info/upgrade_info.json",
+        "https://github.com/lade-package-manager/lade/releases/download/upgrade_info/upgrade_info.json",
         lade_cache_path().join("upgrade_info.json"),
     )
     .unwrap_or_else(|e| {
