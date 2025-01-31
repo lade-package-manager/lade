@@ -1,7 +1,7 @@
 use colored::Colorize;
 use std::fs;
 
-use crate::{error, package_list_structs::Packages, paths::rade_package_list_path};
+use crate::{error, package_list_structs::{GetLatest, Packages}, paths::rade_package_list_path};
 
 pub fn list() {
     let lade_packagelist = rade_package_list_path();
@@ -24,7 +24,7 @@ pub fn list() {
             "{} ({}{})",
             n.name,
             "v".bright_yellow(),
-            n.version.bright_yellow()
+            n.version.get_latest().bright_yellow()
         );
     }
 }

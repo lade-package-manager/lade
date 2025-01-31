@@ -12,7 +12,7 @@ mod paths;
 mod search_package;
 mod unzip_file;
 mod upgrade_self;
-mod urls;
+mod version;
 
 use command::*;
 
