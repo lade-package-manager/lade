@@ -15,7 +15,7 @@ pub struct LadePackage {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct DownloadUrls{
+pub struct DownloadUrls {
     pub windows: String,
     pub macos: String,
     pub linux: String,

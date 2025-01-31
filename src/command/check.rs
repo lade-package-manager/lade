@@ -1,4 +1,7 @@
-use crate::{info, installed_structs::Installed, package_list_structs::GetLatest, search_package::search_package_lade};
+use crate::{
+    info, installed_structs::Installed, package_list_structs::GetLatest,
+    search_package::search_package_lade,
+};
 
 pub fn check() {
     let installed = Installed::new();
@@ -7,10 +10,14 @@ pub fn check() {
         let pkg = search_package_lade(&package.name);
 
         if let Some(packagejson) = pkg {
-            if package.name == packagejson.name && package.version != packagejson.version.get_latest() {
+            if package.name == packagejson.name
+                && package.version != packagejson.version.get_latest()
+            {
                 info!(
                     "Updates are available for package {} ({} -> {})",
-                    packagejson.name, package.version, packagejson.version.get_latest()
+                    packagejson.name,
+                    package.version,
+                    packagejson.version.get_latest()
                 );
                 continue;
             }

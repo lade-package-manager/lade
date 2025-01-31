@@ -33,4 +33,3 @@ pub fn solve(depends: &Vec<String>) -> Vec<String> {
     resolve(depends, &mut solved, &mut visited);
     solved
 }
-

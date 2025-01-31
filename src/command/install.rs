@@ -32,7 +32,12 @@ pub fn install(packages: &mut [String]) -> Result<(), Box<dyn std::error::Error>
             let pkg = search_package_lade(package);
 
             if let Some(pkg_lade) = pkg {
-                print!("{} ({}{}) ", pkg_lade.name, "v".bright_yellow(), pkg_lade.version.get_latest().bright_yellow());
+                print!(
+                    "{} ({}{}) ",
+                    pkg_lade.name,
+                    "v".bright_yellow(),
+                    pkg_lade.version.get_latest().bright_yellow()
+                );
             }
         });
 
@@ -143,7 +148,11 @@ fn install_from_lade(pkg_lade: LadePackage) -> Result<Vec<String>, Box<dyn std::
     Ok(dependencies)
 }
 
-fn install_from_url(url: &DownloadUrls, package: &str, repo: &str) -> Result<PathBuf, Box<dyn std::error::Error>> {
+fn install_from_url(
+    url: &DownloadUrls,
+    package: &str,
+    repo: &str,
+) -> Result<PathBuf, Box<dyn std::error::Error>> {
     let file = download_package(url)?;
     unzip_file::unzip_and_install_lade(&file, repo, package);
     Ok(file)

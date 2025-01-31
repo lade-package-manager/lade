@@ -3,9 +3,8 @@ use std::{error::Error, fs};
 use colored::Colorize;
 
 use crate::{
-    crash, err, info, installed_structs::Installed,
-    paths::lade_bin_path, search_package::search_package_lade,
-    dependencies::solve
+    crash, dependencies::solve, err, info, installed_structs::Installed, paths::lade_bin_path,
+    search_package::search_package_lade,
 };
 
 pub fn remove(package: &str) -> Result<(), Box<dyn Error>> {

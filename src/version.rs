@@ -16,21 +16,33 @@ impl Version {
                 let major = parts[0].parse::<u32>().ok()?;
                 let minor = parts[1].parse::<u32>().ok()?;
                 let patch = parts[2].parse::<u32>().ok()?;
-                Some(Self { major, minor, patch })
-            },
+                Some(Self {
+                    major,
+                    minor,
+                    patch,
+                })
+            }
             2 => {
                 let major = parts[0].parse::<u32>().ok()?;
                 let minor = parts[1].parse::<u32>().ok()?;
-                Some(Self { major, minor, patch: 0 }) // patchはデフォルトで0
-            },
+                Some(Self {
+                    major,
+                    minor,
+                    patch: 0,
+                }) // patchはデフォルトで0
+            }
             1 => {
                 let major = parts[0].parse::<u32>().ok()?;
-                Some(Self { major, minor: 0, patch: 0 }) // minorとpatchはデフォルトで0
-            },
+                Some(Self {
+                    major,
+                    minor: 0,
+                    patch: 0,
+                }) // minorとpatchはデフォルトで0
+            }
             _ => None, // 無効な形式
         }
     }
-    
+
     // バージョンを文字列に変換
     pub fn to_string(&self) -> String {
         format!("{}.{}.{}", self.major, self.minor, self.patch)
@@ -45,7 +57,8 @@ impl PartialOrd for Version {
 
 impl Ord for Version {
     fn cmp(&self, other: &Self) -> Ordering {
-        self.major.cmp(&other.major)
+        self.major
+            .cmp(&other.major)
             .then(self.minor.cmp(&other.minor))
             .then(self.patch.cmp(&other.patch))
     }

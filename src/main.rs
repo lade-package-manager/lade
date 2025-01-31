@@ -9,11 +9,11 @@ mod macros;
 mod package_list_structs;
 mod package_toml_for_download;
 mod paths;
+mod rhai_lade;
 mod search_package;
 mod unzip_file;
 mod upgrade_self;
 mod version;
-mod rhai_lade;
 
 use command::*;
 

@@ -20,7 +20,7 @@ pub fn search_package(package: &str) {
         );
 
         println!("Name: {}", result.name);
-        match result.version.as_slice(){
+        match result.version.as_slice() {
             [_] => println!("Available Version: {}", result.version[0]),
             _ => {
                 println!("Available Versions: {}", result.version.join(", "));
