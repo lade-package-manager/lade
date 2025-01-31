@@ -27,6 +27,7 @@ pub trait GetLatest{
 
 impl GetLatest for Vec<String>{
     fn get_latest(&self) -> String {
+        
     }
 }
 
