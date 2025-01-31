@@ -6,8 +6,22 @@ use std::fs;
 use std::io::{Read, Write};
 use std::{error::Error, path::PathBuf};
 
-pub fn download_package(package: &str, url: &DownloadUrls) -> Result<PathBuf, Box<dyn Error>> {
-    let (url, download_filename) = urls(package);
+pub fn download_package(url: &DownloadUrls) -> Result<PathBuf, Box<dyn Error>> {
+
+    #[allow(unused_assignments)]
+    let mut dl_url = String::new();
+
+    if cfg!(target_os = "linux"){
+        dl_url = url.linux.clone();
+    }else if cfg!(target_os = "macos"){
+        dl_url = url.macos.clone();
+    }else if cfg!(target_os = "windows"){
+        dl_url = url.windows.clone();
+    }else{
+        panic!("Not Support os: {}", std::env::consts::OS);
+    }
+
+    let download_filename = dl_url.split('/').last().unwrap();
 
     println!(
         "{} {} {}",
@@ -22,7 +36,7 @@ pub fn download_package(package: &str, url: &DownloadUrls) -> Result<PathBuf, Bo
     let client = reqwest::blocking::Client::new();
 
     // Get the total size of the download
-    let response = client.head(&url).send()?;
+    let response = client.head(&dl_url).send()?;
     let total_size = response
         .headers()
         .get(reqwest::header::CONTENT_LENGTH)
@@ -41,7 +55,7 @@ pub fn download_package(package: &str, url: &DownloadUrls) -> Result<PathBuf, Bo
     // Download the file and update the progress bar
     let mut downloaded: u64 = 0;
     let mut buffer = vec![0; 8192];
-    let mut response = client.get(&url).send()?;
+    let mut response = client.get(&dl_url).send()?;
     let mut file = fs::File::create(&dest_path)?;
 
     // Read the response body and write it to the file

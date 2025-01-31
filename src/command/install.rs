@@ -144,7 +144,7 @@ fn install_from_lade(pkg_lade: LadePackage) -> Result<Vec<String>, Box<dyn std::
 }
 
 fn install_from_url(url: &DownloadUrls, package: &str, repo: &str) -> Result<PathBuf, Box<dyn std::error::Error>> {
-    let file = download_package(package, url)?;
+    let file = download_package(url)?;
     unzip_file::unzip_and_install_lade(&file, repo, package);
     Ok(file)
 }
