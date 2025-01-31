@@ -1,31 +1,15 @@
-use crate::search_package::{search_package_lade, search_package_rade};
+use crate::{crash, search_package::search_package_lade};
 use colored::Colorize;
 
 pub fn search_package(package: &str) {
     let lade_result = search_package_lade(package);
     if lade_result.is_none() {
-        let rade_result = search_package_rade(package);
-        if rade_result.is_none() {
-            println!("{} {}", ">>>".red().bold(), "Package not found.".bold());
-        }
-
-        if let Some(result) = rade_result {
-            println!(
-                "{} {}",
-                ">>>".green().bold(),
-                "Package found in rade package list.".bold()
-            );
-            println!("Name: {}", package);
-            println!("Version: {}", result.version);
-            println!("Repository: {}", result.repository);
-            println!("Download: {}", result.download);
-            println!("Language: {}", result.language);
-            println!("Capacity: {}", result.capacity);
-            if !["", "None"].contains(&result.dependencies.as_str()) {
-                println!("Dependencies: {}", result.dependencies);
-            }
-            println!();
-        }
+        println!(
+            "{} {}",
+            ">>>".green().bold(),
+            "Package found in package list.".bold()
+        );
+        crash!();
     }
 
     if let Some(result) = lade_result {

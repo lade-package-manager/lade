@@ -1,6 +1,6 @@
 use std::collections::HashSet;
 
-use crate::search_package::{search_package_lade, search_package_rade};
+use crate::search_package::search_package_lade;
 
 pub fn solve_dependencies(depends: &Vec<String>) -> Vec<String> {
     let mut solved: Vec<String> = Vec::new();
@@ -21,15 +21,6 @@ pub fn solve_dependencies(depends: &Vec<String>) -> Vec<String> {
             // Ladeで検索
             if let Some(pkg_lade) = search_package_lade(dependency) {
                 resolve(&pkg_lade.dependencies, solved, visited);
-            } else if let Some(pkg_rade) = search_package_rade(dependency) {
-                // Radeの依存関係をカンマで分割してリスト化
-                let rade_dependencies: Vec<String> = pkg_rade
-                    .dependencies
-                    .split(',')
-                    .map(|s| s.trim().to_string()) // 前後の空白を除去
-                    .collect();
-
-                resolve(&rade_dependencies, solved, visited);
             }
 
             // 依存関係を解決リストに追加

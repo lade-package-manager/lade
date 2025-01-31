@@ -14,25 +14,11 @@ use std::fs;
 use crate::{
     download_file, err, info, log,
     macros::UnwrapOrCrash,
-    paths::{lade_package_list_main_path, lade_package_list_path_dir, rade_package_list_path},
+    paths::{lade_package_list_main_path, lade_package_list_path_dir},
 };
 
 pub fn update() {
     info!("Updating package lists");
-
-    if rade_package_list_path().exists() {
-        std::fs::remove_dir_all(rade_package_list_path()).unwrap_or_crash(|e| {
-            err!("Failed to remove package list directory: ", e);
-        });
-    }
-
-    git2::Repository::clone(
-        "https://github.com/rade-package-manager/rade-package-list",
-        rade_package_list_path(),
-    )
-    .unwrap_or_crash(|e| {
-        err!("Failed to update package list", e);
-    });
 
     if lade_package_list_path_dir().exists() {
         std::fs::remove_dir_all(lade_package_list_path_dir()).unwrap_or_crash(|e| {
@@ -56,8 +42,6 @@ pub fn update() {
     });
 
     if !lade_package_list_path_dir().exists() {
-        info!("Create {}", lade_package_list_path_dir().display());
-
         fs::create_dir_all(lade_package_list_path_dir()).unwrap_or_crash(|e| {
             err!("Failed to retrieve package list.\nPlease run `lade update` to retrive package list. ");
             log!(format!("Failed to remove {}: {}",path.display(),  e), "Failed to remove directory");

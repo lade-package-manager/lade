@@ -1,11 +1,10 @@
 use crate::{
     dependencies::solve_dependencies,
     download_file::download_package,
-    exe_name::get_exec_name,
     info, install_from_git,
     installed_structs::{Installed, Package},
-    package_list_structs::{LadePackage, RadePackage},
-    search_package::{search_package, search_package_lade, search_package_rade},
+    package_list_structs::LadePackage,
+    search_package::search_package_lade,
     unzip_file,
 };
 use colored::*;
@@ -30,14 +29,10 @@ pub fn install(packages: &mut Vec<String>) -> Result<(), Box<dyn std::error::Err
                 println!();
             }
 
-        let pkg = search_package(package);
+            let pkg = search_package_lade(package);
 
-        if let Some(pkg_lade) = pkg.lade {
-            print!("{} (v{}) ", pkg_lade.name, pkg_lade.version.bright_yellow());
-        }
-
-            if let Some(pkg_rade) = pkg.rade {
-                print!("{} ({}) ", package, pkg_rade.version.bright_yellow());
+            if let Some(pkg_lade) = pkg {
+                print!("{} (v{}) ", pkg_lade.name, pkg_lade.version.bright_yellow());
             }
         });
 
@@ -59,7 +54,6 @@ pub fn install(packages: &mut Vec<String>) -> Result<(), Box<dyn std::error::Err
             // install package
             install_package(&mut installed, pkg)?;
         }
-
 
         println!("Installation completed successfully.");
     } else {
@@ -93,8 +87,6 @@ fn resolve_dependencies_and_collect(
 
     if let Some(pkg_lade) = search_package_lade(package) {
         dependencies.extend(install_from_lade(pkg_lade)?);
-    } else if let Some(pkg_rade) = search_package_rade(package) {
-        dependencies.extend(install_from_rade(pkg_rade)?);
     } else {
         return Err(format!("Package not found: {}", package).into());
     }
@@ -131,48 +123,6 @@ fn install_package(
             inst,
             package.to_owned(),
         ));
-    } else if let Some(pkg_rade) = search_package_rade(package) {
-        info!(
-            "Installing {} ({})",
-            package,
-            pkg_rade.version.bright_yellow()
-        );
-
-        let mut nv = None;
-        #[allow(unused)]
-        let mut exec_name = String::new();
-
-        if pkg_rade.download {
-            nv = Some(String::from("true"));
-            install_from_url(package, package)?;
-            exec_name = get_exec_name();
-            if exec_name.is_empty() {
-                exec_name = package.to_string();
-            }
-        } else {
-            install_from_git::install_from_git(package, &pkg_rade.repository)?;
-
-            exec_name = get_exec_name();
-            if exec_name.trim().is_empty() {
-                exec_name = package.to_string();
-            }
-        }
-
-        installed.add_package(Package::new(
-            package.to_string(),
-            pkg_rade.version,
-            String::new(),
-            String::new(),
-            Vec::new(),
-            pkg_rade
-                .dependencies
-                .split(',')
-                .map(str::to_string)
-                .collect(),
-            pkg_rade.repository,
-            nv,
-            exec_name.trim().to_string(),
-        ));
     } else {
         return Err(format!("Package not found during installation: {}", package).into());
     }
@@ -183,22 +133,10 @@ fn install_package(
 fn install_from_lade(pkg_lade: LadePackage) -> Result<Vec<String>, Box<dyn std::error::Error>> {
     let mut dependencies = Vec::new();
     for dependency in pkg_lade.dependencies {
-        if search_package_lade(&dependency).is_some() || search_package_rade(&dependency).is_some()
-        {
+        if search_package_lade(&dependency).is_some() {
             dependencies.push(dependency.to_string());
         }
     }
-
-    solve_dependencies(&mut dependencies);
-    Ok(dependencies)
-}
-
-fn install_from_rade(pkg_rade: RadePackage) -> Result<Vec<String>, Box<dyn std::error::Error>> {
-    let mut dependencies = pkg_rade
-        .dependencies
-        .split(',')
-        .map(str::to_string)
-        .collect::<Vec<_>>();
 
     solve_dependencies(&mut dependencies);
     Ok(dependencies)
