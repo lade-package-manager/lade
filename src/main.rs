@@ -39,7 +39,12 @@ fn main() {
     let args = Cli::parse();
 
     match args.commands {
-        Subcommands::Install { mut package } => install::install(&mut package).unwrap(),
+        Subcommands::Install { mut package } => {
+            install::install(&mut package).unwrap_or_else(|e| {
+                err_with_fmt!("Failed to install package: {}", e);
+                crash!();
+            })
+        }
         Subcommands::Remove { package } => remove::remove(&package).unwrap_or_else(|e| {
             error!(format!("Error: {}", e), e);
         }),

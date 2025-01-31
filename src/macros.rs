@@ -41,6 +41,14 @@ macro_rules! err {
 }
 
 #[macro_export]
+macro_rules! err_with_fmt {
+    ($($arg:tt)*) => {
+        let fmt = format!($($arg)*);
+        println!("\x1b[31;1m>>>\x1b[0m \x1b[1m{}\x1b[0m", fmt);
+    };
+}
+
+#[macro_export]
 /// A macro to print an informational message to the console with a specific format.
 /// The message is prefixed with a green arrow (>>>), and the message itself is bold.
 ///
