@@ -1,30 +1,47 @@
 use colored::Colorize;
 use std::fs;
+use std::io::Read;
 
-use crate::{error, package_list_structs::{GetLatest, Packages}, paths::rade_package_list_path};
+use crate::{
+    error,
+    package_list_structs::{GetLatest, LadePackage},
+    paths,
+};
 
 pub fn list() {
-    let lade_packagelist = rade_package_list_path();
-    let content = fs::read_to_string(&lade_packagelist).unwrap_or_else(|e| {
-        error!(
-            format!("Failed to read {}", &lade_packagelist.display()),
-            format!("Failed to read {}: {}", &lade_packagelist.display(), e)
-        );
-    });
+    let lade_packagelist = [
+        paths::lade_package_list_main_path(),
+        /* paths::lade_package_list_extra_path(), */
+    ];
 
-    let lade_list: Packages = serde_json::from_str(&content).unwrap_or_else(|e| {
-        error!(
-            "Failed to parse json",
-            format!("Failed to parse lade package list: {}", e)
-        );
-    });
+    for path in lade_packagelist {
+        let file = fs::File::open(&path).unwrap();
 
-    for n in lade_list.packages {
-        println!(
-            "{} ({}{})",
-            n.name,
-            "v".bright_yellow(),
-            n.version.get_latest().bright_yellow()
-        );
+        let mut archive = zip::ZipArchive::new(std::io::BufReader::new(file)).unwrap();
+
+        for item in 0..archive.len() {
+            let mut item = archive.by_index(item).unwrap();
+
+            if item.is_dir() || item.name() == "out" {
+                continue;
+            }
+
+            if let Some(name) = item.enclosed_name() {
+                if name.file_name().map(|name| name.to_string_lossy()) != Some("info.toml".into()) {
+                    continue;
+                }
+
+                let mut buf = String::new();
+                item.read_to_string(&mut buf).unwrap();
+                let parsed: LadePackage = toml::from_str(&buf).unwrap();
+
+                println!(
+                    "{} ({}{})",
+                    parsed.name,
+                    "v".bright_yellow(),
+                    parsed.version.get_latest().bright_yellow()
+                );
+            }
+        }
     }
 }
