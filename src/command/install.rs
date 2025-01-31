@@ -32,13 +32,13 @@ pub fn install(packages: &mut [String]) -> Result<(), Box<dyn std::error::Error>
             let pkg = search_package_lade(package);
 
             if let Some(pkg_lade) = pkg {
-                print!("{} (v{}) ", pkg_lade.name, pkg_lade.version.bright_yellow());
+                print!("{} ({}{}) ", pkg_lade.name, "v".bright_yellow(), pkg_lade.version.bright_yellow());
             }
         });
 
     println!();
 
-    println!("Do you want to proceed with installation? [Y/n]");
+    println!("Do you want to proceed with installation?");
     let mut line = rustyline::Editor::<(), rustyline::history::DefaultHistory>::new()?;
     let user_input = line
         .readline_with_initial("[y/n] ", ("y", ""))?
@@ -101,9 +101,11 @@ fn install_package(
 ) -> Result<(), Box<dyn std::error::Error>> {
     if let Some(pkg_lade) = search_package_lade(package) {
         info!(
-            "Installing {} (v{})",
+            "Installing \"{}\" ({}{}{}",
             pkg_lade.name,
-            pkg_lade.version.bright_yellow()
+            "v".bright_yellow(),
+            pkg_lade.version.bright_yellow(),
+            ")".bold()
         );
         if let Some(download_url) = pkg_lade.download.clone() {
             install_from_url(&download_url, package)?;
