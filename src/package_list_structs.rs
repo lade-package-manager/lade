@@ -1,4 +1,5 @@
 use clap::builder::Str;
+use crate::version::Version;
 use serde::{Deserialize, Serialize};
 
 use crate::version::Version;
