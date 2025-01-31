@@ -3,7 +3,6 @@ mod command;
 mod consts;
 mod dependencies;
 mod download_file;
-mod exe_name;
 mod install_from_git;
 mod installed_structs;
 mod macros;

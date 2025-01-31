@@ -19,14 +19,3 @@ pub struct Packages {
     pub version: String,
     pub packages: Vec<LadePackage>,
 }
-
-// radeのパッケージ情報を格納するための構造体toml
-#[derive(Serialize, Deserialize, Debug)]
-pub struct RadePackage {
-    pub dependencies: String,
-    pub language: String,
-    pub repository: String,
-    pub capacity: i64,
-    pub version: String,
-    pub download: bool,
-}
