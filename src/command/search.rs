@@ -20,11 +20,17 @@ pub fn search_package(package: &str) {
         );
 
         println!("Name: {}", result.name);
-        println!("Version: {}", result.version);
+        match result.version.as_slice(){
+            [_] => println!("Available Version: {}", result.version[0]),
+            _ => {
+                println!("Available Versions: {}", result.version.join(", "));
+            }
+        }
+
         println!("Repository: {}", result.repository);
 
-        if let Some(download) = result.download {
-            println!("Download: {}", download);
+        if result.download.is_some() {
+            println!("Download: true");
         }
 
         println!("Description: {}", result.description);

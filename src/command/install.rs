@@ -3,7 +3,7 @@ use crate::{
     download_file::download_package,
     info, install_from_git,
     installed_structs::{Installed, Package},
-    package_list_structs::LadePackage,
+    package_list_structs::{DownloadUrls, LadePackage},
     search_package::search_package_lade,
     unzip_file,
 };
@@ -107,13 +107,13 @@ fn install_package(
             pkg_lade.version.bright_yellow(),
             ")".bold()
         );
-        if let Some(download_url) = pkg_lade.download.clone() {
-            install_from_url(&download_url, package)?;
+        if let Some(download_url) = &pkg_lade.download {
+            install_from_url(download_url, package, &pkg_lade.repository)?;
         } else {
             install_from_git::install_from_git(&pkg_lade.name, &pkg_lade.repository)?;
         }
 
-        let inst = pkg_lade.download.clone();
+        let inst = pkg_lade.download.is_some();
         installed.add_package(Package::new(
             pkg_lade.name,
             pkg_lade.version,
@@ -143,8 +143,8 @@ fn install_from_lade(pkg_lade: LadePackage) -> Result<Vec<String>, Box<dyn std::
     Ok(dependencies)
 }
 
-fn install_from_url(url: &str, package: &str) -> Result<PathBuf, Box<dyn std::error::Error>> {
-    let file = download_package(url)?;
-    unzip_file::unzip_and_install_lade(&file, url, package);
+fn install_from_url(url: &DownloadUrls, package: &str, repo: &str) -> Result<PathBuf, Box<dyn std::error::Error>> {
+    let file = download_package(package, url)?;
+    unzip_file::unzip_and_install_lade(&file, repo, package);
     Ok(file)
 }

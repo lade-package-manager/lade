@@ -1,11 +1,12 @@
-use crate::{paths::lade_cache_path, urls::urls};
+use crate::package_list_structs::DownloadUrls;
+use crate::paths::lade_cache_path;
 use colored::*;
 use indicatif::{ProgressBar, ProgressStyle};
 use std::fs;
 use std::io::{Read, Write};
 use std::{error::Error, path::PathBuf};
 
-pub fn download_package(package: &str) -> Result<PathBuf, Box<dyn Error>> {
+pub fn download_package(package: &str, url: &DownloadUrls) -> Result<PathBuf, Box<dyn Error>> {
     let (url, download_filename) = urls(package);
 
     println!(

@@ -22,7 +22,7 @@ pub struct Package {
     pub authors: Vec<String>,
     pub dependencies: Vec<String>,
     pub repository: String,
-    pub download: Option<String>,
+    pub download: bool,
     pub install_date: String,
     pub exec_name: String,
 }
@@ -102,7 +102,7 @@ impl Package {
         authors: Vec<String>,
         dependencies: Vec<String>,
         repository: String,
-        download: Option<String>,
+        download: bool,
         exec_name: String,
     ) -> Package {
         Package {
