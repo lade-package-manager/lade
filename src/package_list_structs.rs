@@ -1,8 +1,5 @@
-use clap::builder::Str;
 use crate::version::Version;
 use serde::{Deserialize, Serialize};
-
-use crate::version::Version;
 
 // ladeのパッケージ情報を格納するための構造体json
 #[derive(Serialize, Deserialize, Debug)]
