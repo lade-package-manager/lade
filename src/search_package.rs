@@ -1,6 +1,6 @@
 use crate::{
     error,
-    package_list_structs::LadePackage,
+    package::Package,
     paths::{lade_package_list_extra_path, lade_package_list_main_path},
 };
 use std::{
@@ -9,7 +9,7 @@ use std::{
 };
 use zip::ZipArchive;
 
-pub fn search_package_lade(package: &str) -> Option<LadePackage> {
+pub fn search_package_lade(package: &str) -> Option<Package> {
     let package_list_paths = [
         lade_package_list_main_path(),
         lade_package_list_extra_path(),

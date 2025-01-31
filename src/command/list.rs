@@ -2,11 +2,7 @@ use colored::Colorize;
 use std::fs;
 use std::io::Read;
 
-use crate::{
-    error,
-    package_list_structs::{GetLatest, LadePackage},
-    paths,
-};
+use crate::{error, package::Package, paths};
 
 pub fn list() {
     let lade_packagelist = [
@@ -33,13 +29,13 @@ pub fn list() {
 
                 let mut buf = String::new();
                 item.read_to_string(&mut buf).unwrap();
-                let parsed: LadePackage = toml::from_str(&buf).unwrap();
+                let parsed: Package = toml::from_str(&buf).unwrap();
 
                 println!(
                     "{} ({}{})",
                     parsed.name,
                     "v".bright_yellow(),
-                    parsed.version.get_latest().bright_yellow()
+                    parsed.version.to_string().bright_yellow()
                 );
             }
         }

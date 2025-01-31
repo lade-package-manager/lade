@@ -1,4 +1,4 @@
-use crate::package_list_structs::DownloadUrls;
+use crate::package::DownloadUrls;
 use crate::paths::lade_cache_path;
 use colored::*;
 use indicatif::{ProgressBar, ProgressStyle};
@@ -7,17 +7,16 @@ use std::io::{Read, Write};
 use std::{error::Error, path::PathBuf};
 
 pub fn download_package(url: &DownloadUrls) -> Result<PathBuf, Box<dyn Error>> {
-
     #[allow(unused_assignments)]
     let mut dl_url = String::new();
 
-    if cfg!(target_os = "linux"){
+    if cfg!(target_os = "linux") {
         dl_url = url.linux.clone();
-    }else if cfg!(target_os = "macos"){
+    } else if cfg!(target_os = "macos") {
         dl_url = url.macos.clone();
-    }else if cfg!(target_os = "windows"){
+    } else if cfg!(target_os = "windows") {
         dl_url = url.windows.clone();
-    }else{
+    } else {
         panic!("Not Support os: {}", std::env::consts::OS);
     }
 
