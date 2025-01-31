@@ -22,7 +22,7 @@ pub struct DownloadUrls{
 }
 
 pub trait GetLatest{
-    fn get_latest(&self) -> String
+    fn get_latest(&self) -> String;
 }
 
 impl GetLatest for Vec<String>{

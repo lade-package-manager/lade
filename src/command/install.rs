@@ -3,7 +3,7 @@ use crate::{
     download_file::download_package,
     info, install_from_git,
     installed_structs::{Installed, Package},
-    package_list_structs::{DownloadUrls, LadePackage},
+    package_list_structs::{DownloadUrls, GetLatest, LadePackage},
     search_package::search_package_lade,
     unzip_file,
 };
@@ -32,7 +32,7 @@ pub fn install(packages: &mut [String]) -> Result<(), Box<dyn std::error::Error>
             let pkg = search_package_lade(package);
 
             if let Some(pkg_lade) = pkg {
-                print!("{} ({}{}) ", pkg_lade.name, "v".bright_yellow(), pkg_lade.version.bright_yellow());
+                print!("{} ({}{}) ", pkg_lade.name, "v".bright_yellow(), pkg_lade.version.join(", ").bright_yellow());
             }
         });
 
@@ -104,7 +104,7 @@ fn install_package(
             "Installing \"{}\" ({}{}{}",
             pkg_lade.name,
             "v".bright_yellow(),
-            pkg_lade.version.bright_yellow(),
+            pkg_lade.version.join(", ").bright_yellow(),
             ")".bold()
         );
         if let Some(download_url) = &pkg_lade.download {
@@ -116,7 +116,7 @@ fn install_package(
         let inst = pkg_lade.download.is_some();
         installed.add_package(Package::new(
             pkg_lade.name,
-            pkg_lade.version,
+            pkg_lade.version.get_latest(),
             pkg_lade.description,
             pkg_lade.license,
             pkg_lade.authors,
