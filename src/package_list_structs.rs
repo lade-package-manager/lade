@@ -15,7 +15,7 @@ pub struct LadePackage {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct DownloadUrls{
+pub struct DownloadUrls {
     pub windows: String,
     pub macos: String,
     pub linux: String,
@@ -28,7 +28,7 @@ pub trait GetLatest {
 impl GetLatest for Vec<String> {
     fn get_latest(&self) -> String {
         self.iter()
-            .filter_map(|v| Version::parse(v)) // パースできたものだけを対象にする
+            .filter_map(|v| v.parse::<Version>().ok()) // パースできたものだけを対象にする
             .max() // 最も高いバージョンを取得
             .map(|v| v.to_string()) // バージョンを文字列に戻す
             .unwrap_or_else(|| "0.0.0".to_string()) // 空の場合のデフォルト値
