@@ -1,8 +1,15 @@
 use rhai::Engine;
+use rhai::Shared;
+use std::cell::RefCell;
 
 use crate::{crash, err, log};
 
-use super::{envs, files, system};
+use super::path;
+use super::{
+    envs,
+    files::{self, RFile},
+    system,
+};
 
 pub fn execute_rhai(source: &str) {
     let mut engine = Engine::new();
@@ -13,9 +20,31 @@ pub fn execute_rhai(source: &str) {
 
     engine.register_fn("set_env", envs::set_env);
 
-    engine.register_fn("read_file", files::read_file);
+    // register `RFile` structs
+    engine
+        .register_type::<files::RFile>()
+        .register_fn("open_file", files::open_file_share)
+        .register_fn(
+            "write",
+            |file: &mut Shared<RefCell<RFile>>, content: &str| {
+                file.borrow_mut().write(content);
+            },
+        )
+        .register_fn("clear", |file: &mut Shared<RefCell<RFile>>| {
+            file.borrow_mut().clear();
+        })
+        .register_fn(
+            "read_to_string",
+            |file: &mut Shared<RefCell<RFile>>| -> String { RFile::read_to_string(file) },
+        );
 
-    engine.register_fn("write_file", files::write_file);
+    // register `RPath` structs
+    engine
+        .register_fn("path", path::path)
+        .register_fn("to_string", path::RPath::to_string)
+        .register_fn("file_name", path::RPath::file_name)
+        .register_fn("exists", path::RPath::exists)
+        .register_fn("read_file", path::RPath::read_file);
 
     engine.run(source).unwrap_or_else(|e| {
         err!("Failed to execute rhai: {}", e);

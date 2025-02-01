@@ -5,15 +5,11 @@ pub fn check() {
         let pkg = search_package_lade(&package.name);
 
         if let Some(packagejson) = pkg {
-            if package.name == packagejson.name
-                && package.version != packagejson.version
-            {
+            if package.name == packagejson.name && package.version != packagejson.version {
                 info!(
                     "Updates are available for package {} ({} -> {})",
-                    packagejson.name,
-                    package.version,
-                    packagejson.version
-                )
+                    packagejson.name, package.version, packagejson.version
+                );
             }
         }
     }

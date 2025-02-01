@@ -1,3 +1,5 @@
+use std::fs;
+
 use clap::{Parser, Subcommand};
 mod command;
 mod consts;
@@ -24,15 +26,25 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Subcommands {
-    Install { package: Vec<String> },
-    Remove { package: String },
+    Install {
+        package: Vec<String>,
+    },
+    Remove {
+        package: String,
+    },
     Update,
     List,
-    Search { query: String },
+    Search {
+        query: String,
+    },
     Upgrade,
     Clean,
     Check,
     Autoclean,
+    /// execute the rhai
+    Rhai {
+        file: String,
+    },
 }
 
 fn main() {
@@ -55,5 +67,9 @@ fn main() {
         Subcommands::Clean => clean::clean(),
         Subcommands::Check => check::check(),
         Subcommands::Autoclean => todo!("Autocleaning packages"),
+
+        Subcommands::Rhai { file } => {
+            rhai_lade::execute::execute_rhai(&fs::read_to_string(file).unwrap());
+        }
     }
 }

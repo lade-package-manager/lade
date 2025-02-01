@@ -2,7 +2,7 @@ use colored::Colorize;
 use std::fs;
 use std::io::Read;
 
-use crate::{error, package::Package, paths};
+use crate::{package::Package, paths};
 
 pub fn list() {
     let lade_packagelist = [
