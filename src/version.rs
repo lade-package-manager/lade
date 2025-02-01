@@ -1,4 +1,6 @@
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use std::cmp::Ordering;
+use std::str::FromStr;
 
 #[derive(Debug, Clone)]
 pub struct Version {
@@ -7,45 +9,50 @@ pub struct Version {
     patch: u32,
 }
 
-impl Version {
-    // Versionを文字列からパース
-    pub fn parse(version_str: &str) -> Option<Self> {
-        let parts: Vec<&str> = version_str.split('.').collect();
+#[derive(Debug)]
+pub struct ParseVersionError;
+
+impl FromStr for Version {
+    type Err = ParseVersionError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let parts: Vec<&str> = s.split('.').collect();
         match parts.len() {
             3 => {
-                let major = parts[0].parse::<u32>().ok()?;
-                let minor = parts[1].parse::<u32>().ok()?;
-                let patch = parts[2].parse::<u32>().ok()?;
-                Some(Self {
+                let major = parts[0].parse::<u32>().map_err(|_| ParseVersionError)?;
+                let minor = parts[1].parse::<u32>().map_err(|_| ParseVersionError)?;
+                let patch = parts[2].parse::<u32>().map_err(|_| ParseVersionError)?;
+                Ok(Self {
                     major,
                     minor,
                     patch,
                 })
             }
             2 => {
-                let major = parts[0].parse::<u32>().ok()?;
-                let minor = parts[1].parse::<u32>().ok()?;
-                Some(Self {
+                let major = parts[0].parse::<u32>().map_err(|_| ParseVersionError)?;
+                let minor = parts[1].parse::<u32>().map_err(|_| ParseVersionError)?;
+                Ok(Self {
                     major,
                     minor,
                     patch: 0,
                 }) // patchはデフォルトで0
             }
             1 => {
-                let major = parts[0].parse::<u32>().ok()?;
-                Some(Self {
+                let major = parts[0].parse::<u32>().map_err(|_| ParseVersionError)?;
+                Ok(Self {
                     major,
                     minor: 0,
                     patch: 0,
                 }) // minorとpatchはデフォルトで0
             }
-            _ => None, // 無効な形式
+            _ => Err(ParseVersionError), // 無効な形式
         }
     }
+}
 
-    // バージョンを文字列に変換
-    pub fn to_string(&self) -> String {
-        format!("{}.{}.{}", self.major, self.minor, self.patch)
+impl std::fmt::Display for Version {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}.{}.{}", self.major, self.minor, self.patch)
     }
 }
 
@@ -71,3 +78,22 @@ impl PartialEq for Version {
 }
 
 impl Eq for Version {}
+
+impl Serialize for Version {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        serializer.serialize_str(&self.to_string())
+    }
+}
+
+impl<'de> Deserialize<'de> for Version {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let s = String::deserialize(deserializer)?;
+        Version::from_str(&s).map_err(|_| serde::de::Error::custom("Cannot parse version pattern"))
+    }
+}

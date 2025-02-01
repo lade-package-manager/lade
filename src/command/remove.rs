@@ -3,12 +3,12 @@ use std::{error::Error, fs};
 use colored::Colorize;
 
 use crate::{
-    crash, dependencies::solve, err, info, installed_structs::Installed, paths::lade_bin_path,
+    crash, dependencies::solve, err, info, package, paths::lade_bin_path,
     search_package::search_package_lade,
 };
 
 pub fn remove(package: &str) -> Result<(), Box<dyn Error>> {
-    let pkg = Installed::search_package(package);
+    let pkg = package::find(package);
 
     if pkg.is_none() {
         err!(format!("Package not found: {}", package));
@@ -16,11 +16,10 @@ pub fn remove(package: &str) -> Result<(), Box<dyn Error>> {
     }
 
     if let Some(pkg) = pkg {
-        if confirm_removal(&pkg.name, &pkg.version, &pkg.description) {
-            let path = lade_bin_path().join(pkg.clone().exec_name);
+        if confirm_removal(&pkg.name, &pkg.version.to_string(), &pkg.description) {
+            let path = lade_bin_path().join(pkg.bin_name());
             fs::remove_file(path)?;
-            let mut installed = Installed::new();
-            installed.remove_package_by_name(package);
+            package::remove_installed_by_name(package);
 
             info!("The package deletion was successfully completed without incident!");
 

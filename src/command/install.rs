@@ -2,8 +2,7 @@ use crate::{
     dependencies,
     download_file::download_package,
     info, install_from_git,
-    installed_structs::{Installed, Package},
-    package_list_structs::{DownloadUrls, GetLatest, LadePackage},
+    package::{self, DownloadUrls, Package},
     search_package::search_package_lade,
     unzip_file,
 };
@@ -16,7 +15,7 @@ pub fn install(packages: &mut [String]) -> Result<(), Box<dyn std::error::Error>
 
     // 依存関係をリスト表示
     packages.iter().for_each(|f| {
-        if Installed::is_installed(f) {
+        if package::already_installed(f) {
             info!("Package {} is already installed. Reinstalling...", f);
         }
     });
@@ -36,7 +35,7 @@ pub fn install(packages: &mut [String]) -> Result<(), Box<dyn std::error::Error>
                     "{} ({}{}) ",
                     pkg_lade.name,
                     "v".bright_yellow(),
-                    pkg_lade.version.get_latest().bright_yellow()
+                    pkg_lade.version.to_string().bright_yellow()
                 );
             }
         });
@@ -51,13 +50,12 @@ pub fn install(packages: &mut [String]) -> Result<(), Box<dyn std::error::Error>
         .to_lowercase();
 
     if matches!(user_input.as_str(), "y" | "yes") {
-        let mut installed = Installed::new();
         for pkg in resolved_dependencies.iter().rev() {
-            if let Some(existing_pkg) = Installed::search_package(pkg) {
-                installed.remove_package_by_name(&existing_pkg.name);
+            if let Some(existing_pkg) = package::find(pkg) {
+                package::remove_installed_by_name(&existing_pkg.name);
             }
             // install package
-            install_package(&mut installed, pkg)?;
+            install_package(pkg)?;
         }
 
         println!("Installation completed successfully.");
@@ -100,36 +98,22 @@ fn resolve_dependencies_and_collect(
 }
 
 // パッケージインストール
-fn install_package(
-    installed: &mut Installed,
-    package: &str,
-) -> Result<(), Box<dyn std::error::Error>> {
+fn install_package(package: &str) -> Result<(), Box<dyn std::error::Error>> {
     if let Some(pkg_lade) = search_package_lade(package) {
         info!(
             "Installing \"{}\" ({}{}{}",
             pkg_lade.name,
             "v".bright_yellow(),
-            pkg_lade.version.get_latest().bright_yellow(),
+            pkg_lade.version.to_string().bright_yellow(),
             ")".bold()
         );
-        if let Some(download_url) = &pkg_lade.download {
+        if let Some(download_url) = &pkg_lade.download_url {
             install_from_url(download_url, package, &pkg_lade.repository)?;
         } else {
             install_from_git::install_from_git(&pkg_lade.name, &pkg_lade.repository)?;
         }
 
-        let inst = pkg_lade.download.is_some();
-        installed.add_package(Package::new(
-            pkg_lade.name,
-            pkg_lade.version.get_latest(),
-            pkg_lade.description,
-            pkg_lade.license,
-            pkg_lade.authors,
-            pkg_lade.dependencies,
-            pkg_lade.repository,
-            inst,
-            package.to_owned(),
-        ));
+        package::add_installed(pkg_lade);
     } else {
         return Err(format!("Package not found during installation: {}", package).into());
     }
@@ -137,7 +121,7 @@ fn install_package(
     Ok(())
 }
 
-fn install_from_lade(pkg_lade: LadePackage) -> Result<Vec<String>, Box<dyn std::error::Error>> {
+fn install_from_lade(pkg_lade: Package) -> Result<Vec<String>, Box<dyn std::error::Error>> {
     let dependencies = pkg_lade
         .dependencies
         .into_iter()

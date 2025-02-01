@@ -20,16 +20,21 @@ pub fn search_package(package: &str) {
         );
 
         println!("Name: {}", result.name);
-        match result.version.as_slice() {
-            [_] => println!("Available Version: {}", result.version[0]),
-            _ => {
-                println!("Available Versions: {}", result.version.join(", "));
+        match result.older_versions {
+            Some(older_versions) => {
+                println!(
+                    "{}",
+                    older_versions
+                        .into_iter()
+                        .fold(result.version.to_string(), |b, v| format!("{b}, {v}"))
+                )
             }
+            None => println!("Available Version: {}", result.version),
         }
 
         println!("Repository: {}", result.repository);
 
-        if result.download.is_some() {
+        if result.download_url.is_some() {
             println!("Download: true");
         }
 

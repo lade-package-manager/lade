@@ -1,4 +1,4 @@
-use crate::package_list_structs::DownloadUrls;
+use crate::package::DownloadUrls;
 use crate::paths::lade_cache_path;
 use colored::*;
 use indicatif::{ProgressBar, ProgressStyle};
