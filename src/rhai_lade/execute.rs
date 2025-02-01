@@ -1,6 +1,7 @@
 use rhai::Engine;
 use rhai::Shared;
 use std::cell::RefCell;
+use std::error::Error;
 
 use crate::{crash, err, log};
 
@@ -11,7 +12,7 @@ use super::{
     system,
 };
 
-pub fn execute_rhai(source: &str) {
+pub fn execute_rhai(source: &str) -> Result<(), Box<dyn Error>>{
     let mut engine = Engine::new();
 
     engine.register_fn("system", system::system);
@@ -40,18 +41,13 @@ pub fn execute_rhai(source: &str) {
 
     // register `RPath` structs
     engine
+        .register_type::<path::RPath>()
         .register_fn("path", path::path)
         .register_fn("to_string", path::RPath::to_string)
         .register_fn("file_name", path::RPath::file_name)
         .register_fn("exists", path::RPath::exists)
         .register_fn("read_file", path::RPath::read_file);
 
-    engine.run(source).unwrap_or_else(|e| {
-        err!("Failed to execute rhai: {}", e);
-        log!(
-            format!("Failed to execute rhai: {}", e),
-            "Failed to execute rhai"
-        );
-        crash!();
-    });
+    engine.run(source)?;
+    Ok(())
 }

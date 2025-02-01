@@ -1,10 +1,7 @@
 use std::{fs, ops::ControlFlow, process::Stdio};
 
 use crate::{
-    crash, err, info,
-    macros::UnwrapOrCrash,
-    paths::{lade_bin_path, lade_build_path},
-    write_log,
+    crash, err, error, info, macros::UnwrapOrCrash, paths::{lade_bin_path, lade_build_path}, rhai_lade::execute, write_log
 };
 
 pub fn install_from_git(package: &str, url: &str) -> Result<(), Box<dyn std::error::Error>> {
@@ -17,28 +14,19 @@ pub fn install_from_git(package: &str, url: &str) -> Result<(), Box<dyn std::err
 
     git2::Repository::clone(url, lade_build_path())?;
 
-    let install_sh = lade_build_path().join("install.sh");
-    let install_comrade = lade_build_path().join(".comrade").join("build.sh");
-    let install_lade = lade_build_path().join(".lade").join("build.sh");
-    let install_rade = lade_build_path().join(".build.lade.sh");
-    let installs = vec![install_lade, install_comrade, install_rade, install_sh];
+    let install_sh = lade_build_path().join("install.rhai");
+    let install_lade = lade_build_path().join(".lade").join("build.rhai");
+    let install_rade = lade_build_path().join(".build.lade.rhai");
+    let installs = vec![install_lade, install_rade, install_sh];
 
     let installed = installs.into_iter().try_for_each(|install| {
         if install.exists() {
-            std::process::Command::new("sh")
-                .arg(install)
-                .current_dir(lade_build_path())
-                .stdout(Stdio::null())
-                .stderr(Stdio::null())
-                .status()
-                .unwrap_or_crash(|e| {
-                    err!("Failed to run install script. please see lade log file", e);
-                    write_log!(format!(
-                        "date: {}\nerror: Failed to run install script\nError_code: {}",
-                        chrono::Local::now(),
-                        e
-                    ));
-                });
+            let content = fs::read_to_string(install).unwrap_or_else(|e| {
+                error!("Failed to read install script", format!("Failed to read install script: {e}, url: {url}"));
+            });
+            execute::execute_rhai(&content).unwrap_or_else(|e| {
+                error!("Failed to execute install script", format!("Failed to execute install script: {e}, url: {url}"));
+            });
             return ControlFlow::Break(());
         }
         ControlFlow::Continue(())
