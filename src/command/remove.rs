@@ -44,7 +44,7 @@ fn confirm_removal(package_name: &str, version: &str, description: &str) -> bool
     println!(
         "{}{}",
         ">>> ".green(),
-        "Are you sure you want to remove this package? [y/N]".bold()
+        "Are you sure you want to remove this package?".bold()
     );
 
     let mut line = rustyline::Editor::<(), rustyline::history::DefaultHistory>::new().unwrap();
