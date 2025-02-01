@@ -1,10 +1,5 @@
 use crate::{
-    dependencies,
-    download_file::download_package,
-    info, install_from_git,
-    package::{self, DownloadUrls, Package},
-    search_package::search_package_lade,
-    unzip_file,
+    debug, dependencies, download_file::download_package, err, info, install_from_git, package::{self, DownloadUrls, Package}, search_package::search_package_lade, unzip_file
 };
 use colored::*;
 use std::path::PathBuf;
@@ -58,9 +53,9 @@ pub fn install(packages: &mut [String]) -> Result<(), Box<dyn std::error::Error>
             install_package(pkg)?;
         }
 
-        println!("Installation completed successfully.");
+        info!("Installation completed successfully!");
     } else {
-        println!("Installation canceled.");
+        err!("Installation canceled.");
     }
 
     Ok(())
@@ -71,6 +66,7 @@ fn resolve_dependencies(packages: &[String]) -> Result<Vec<String>, Box<dyn std:
     let mut dependencies = Vec::new();
 
     for package in packages {
+        debug!("resolve package: {package}");
         let package_dependencies = resolve_dependencies_and_collect(package)?;
         dependencies.extend(package_dependencies);
     }

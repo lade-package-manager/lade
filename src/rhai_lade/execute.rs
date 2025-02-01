@@ -3,7 +3,7 @@ use rhai::Shared;
 use std::cell::RefCell;
 use std::error::Error;
 
-use crate::{crash, err, log};
+
 
 use super::path;
 use super::{
@@ -15,7 +15,7 @@ use super::{
 pub fn execute_rhai(source: &str) -> Result<(), Box<dyn Error>>{
     let mut engine = Engine::new();
 
-    engine.register_fn("system", system::system);
+    engine.register_fn("system", system::system_rhai);
 
     engine.register_fn("get_env", envs::get_env);
 

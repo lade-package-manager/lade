@@ -45,7 +45,9 @@ pub fn installed() -> Vec<Package> {
     if file.trim().is_empty() {
         vec![]
     } else {
-        serde_json::from_str::<Vec<Package>>(&file).unwrap()
+        serde_json::from_str::<Vec<Package>>(&file).unwrap_or_else(|e| {
+            error!("Failed to parse json", format!("Failed to parse PackageJson: {e}"));
+        })
     }
 }
 

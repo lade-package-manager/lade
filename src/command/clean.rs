@@ -36,7 +36,6 @@ pub fn clean() {
 
             remove_item(&dirs).unwrap_or_else(|e| {
                 error!(
-                    format!("Failed to remove {}: {}", dirs.display(), e),
                     format!("Failed to remove {}: {}", dirs.display(), e)
                 );
             });
@@ -45,7 +44,6 @@ pub fn clean() {
         if dirs.is_dir() {
             fs::create_dir_all(&dirs).unwrap_or_else(|e| {
                 error!(
-                    format!("Failed to create {}: {}", dirs.display(), e),
                     format!("Failed to create {}: {}", dirs.display(), e)
                 );
             });

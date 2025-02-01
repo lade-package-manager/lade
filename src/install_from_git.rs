@@ -1,7 +1,7 @@
-use std::{fs, ops::ControlFlow, process::Stdio};
+use std::{env, fs, ops::ControlFlow};
 
 use crate::{
-    crash, err, error, info, macros::UnwrapOrCrash, paths::{lade_bin_path, lade_build_path}, rhai_lade::execute, write_log
+    crash, debug, err, error, info, macros::UnwrapOrCrash, paths::{lade_bin_path, lade_build_path}, rhai_lade::execute, write_log
 };
 
 pub fn install_from_git(package: &str, url: &str) -> Result<(), Box<dyn std::error::Error>> {
@@ -23,6 +23,9 @@ pub fn install_from_git(package: &str, url: &str) -> Result<(), Box<dyn std::err
         if install.exists() {
             let content = fs::read_to_string(install).unwrap_or_else(|e| {
                 error!("Failed to read install script", format!("Failed to read install script: {e}, url: {url}"));
+            });
+            env::set_current_dir(lade_build_path()).unwrap_or_else(|e| {
+                error!(format!("Failed to install {}: Failed to set directory", &package), format!("Failed to set current directory: {}", e));
             });
             execute::execute_rhai(&content).unwrap_or_else(|e| {
                 error!("Failed to execute install script", format!("Failed to execute install script: {e}, url: {url}"));
@@ -53,6 +56,7 @@ pub fn install_from_git(package: &str, url: &str) -> Result<(), Box<dyn std::err
         crash!();
     }
 
+    debug!("move executable file: {} -> {}", exec.display(), lade_bin_path().join(package).display());
     fs::rename(exec, lade_bin_path().join(package)).unwrap_or_crash(|e| {
         err!("Failed to move executable file", e);
         write_log!(format!(

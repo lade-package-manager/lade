@@ -69,7 +69,7 @@ fn main() {
         Subcommands::Autoclean => todo!("Autocleaning packages"),
 
         Subcommands::Rhai { file } => {
-            rhai_lade::execute::execute_rhai(&fs::read_to_string(file).unwrap());
+            rhai_lade::execute::execute_rhai(&fs::read_to_string(file).unwrap()).unwrap();
         }
     }
 }

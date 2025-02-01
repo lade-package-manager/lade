@@ -246,6 +246,18 @@ macro_rules! error {
     }};
 }
 
+#[macro_export]
+macro_rules! debug {
+    ($($arg:tt)*) => {{
+        let is_debug = std::env::var("LADE_DEBUG").unwrap_or("0".to_string());  
+
+        if is_debug == "1"{
+            let fmt = format!($($arg)*);
+            eprintln!("[\x1b[33;1mDEBUG\x1b[0m] {}", fmt);
+        }
+    }};
+}
+
 pub trait UnwrapOrCrash<T, E> {
     fn unwrap_or_crash<F: FnOnce(E)>(self, f: F) -> T;
     fn unwrap_or_crash_by_status<F: FnOnce(E)>(self, status: i32, f: F) -> T;
