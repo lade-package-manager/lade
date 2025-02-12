@@ -9,7 +9,7 @@ use crate::{
 use colored::*;
 use std::path::PathBuf;
 
-pub fn install(packages: &mut [String]) -> Result<(), Box<dyn std::error::Error>> {
+pub fn install(packages: &mut [String]) -> anyhow::Result<()> {
     info!("Resolving dependencies...");
     let resolved_dependencies = resolve_dependencies(packages)?;
 
@@ -64,7 +64,7 @@ pub fn install(packages: &mut [String]) -> Result<(), Box<dyn std::error::Error>
         resolved_dependencies.into_iter().rev().for_each(|pkg| {
             install_package(&pkg).unwrap_or_else(|e| {
                 error!(format!("Failed to install package: {e}"));
-            })
+            });
         });
 
         info!("Installation completed successfully!");
@@ -76,12 +76,12 @@ pub fn install(packages: &mut [String]) -> Result<(), Box<dyn std::error::Error>
 }
 
 // 依存関係解決
-fn resolve_dependencies(packages: &[String]) -> Result<Vec<String>, Box<dyn std::error::Error>> {
+fn resolve_dependencies(packages: &[String]) -> anyhow::Result<Vec<String>> {
     let mut dependencies = Vec::new();
 
     for package in packages {
         debug!("resolve package: {package}");
-        let package_dependencies = resolve_dependencies_and_collect(package)?;
+        let package_dependencies = resolve_dependencies_and_collect(package)?;	
         dependencies.extend(package_dependencies);
     }
 
@@ -93,7 +93,7 @@ fn resolve_dependencies(packages: &[String]) -> Result<Vec<String>, Box<dyn std:
 // 依存関係を収集
 fn resolve_dependencies_and_collect(
     package: &str,
-) -> Result<Vec<String>, Box<dyn std::error::Error>> {
+) -> anyhow::Result<Vec<String>> {
     let mut dependencies = Vec::new();
 
     dependencies.push(package.to_string());
@@ -101,7 +101,7 @@ fn resolve_dependencies_and_collect(
     if let Some(pkg_lade) = search_package_lade(package) {
         dependencies.extend(install_from_lade(pkg_lade)?);
     } else {
-        return Err(format!("Package not found: {}", package).into());
+        return Err(anyhow::anyhow!("Package not found: {}", package).into());
     }
 
     Ok(dependencies)
@@ -117,7 +117,7 @@ fn install_preparation(package: &str) -> anyhow::Result<()> {
             ")...".bold()
         );
         if let Some(download_url) = &pkg_lade.download_url {
-            /* preparation_download */
+	    preparation_downlaod_install(download_url)?;
         } else {
             install_from_git::install_preparation_git(&pkg_lade.name, &pkg_lade.repository)?;
         }
@@ -135,8 +135,8 @@ fn install_package(package: &str) -> anyhow::Result<()> {
             pkg_lade.version.to_string().bright_yellow(),
             ")".bold()
         );
-        if let Some(_) = &pkg_lade.download_url {
-            install_from_url(package, &pkg_lade.repository)?;
+        if let Some(url) = &pkg_lade.download_url {
+            install_from_url(url, package, &pkg_lade.repository)?;
         } else {
             install_from_git::install_from_git(&pkg_lade.name, &pkg_lade.repository)?;
         }
@@ -168,14 +168,16 @@ fn preparation_downlaod_install(url: &DownloadUrls) -> anyhow::Result<PathBuf> {
     Ok(file)
 }
 
-fn install_from_url(package: &str, repo: &str) -> anyhow::Result<()> {
+fn install_from_url(url: &DownloadUrls, package: &str, repo: &str) -> anyhow::Result<()> {
     if let Some(pkg_lade) = search_package_lade(package) {
-        if let Some(download_url) = pkg_lade.download_url {
-            let downloaded_file = preparation_downlaod_install(&download_url)?;
-            unzip_file::unzip_and_install_lade(downloaded_file, repo, package);
+        if let Some(_) = pkg_lade.download_url {
+            unzip_file::unzip_and_install_lade(url, repo, package);
             Ok(())
         } else {
-            Err(anyhow::anyhow!("No download URL available for package: {}", package))
+            Err(anyhow::anyhow!(
+                "No download URL available for package: {}",
+                package
+            ))
         }
     } else {
         Err(anyhow::anyhow!("Package not found: {}", package))

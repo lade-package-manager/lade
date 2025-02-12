@@ -17,6 +17,8 @@ pub fn path(path: &str) -> Shared<RefCell<RPath>> {
         path: path.to_path_buf(),
     }))
 }
+
+
 impl RPath {
     pub fn to_string(file: Shared<RefCell<RPath>>) -> String {
         format!("{}", file.borrow().path.display())

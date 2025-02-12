@@ -1,5 +1,5 @@
 use crate::package::DownloadUrls;
-use crate::paths::{lade_cache_path, lade_downloaded_package_path};
+use crate::paths::lade_downloaded_package_path;
 use colored::*;
 use indicatif::{ProgressBar, ProgressStyle};
 use std::fs;
@@ -30,7 +30,7 @@ pub fn download_package(url: &DownloadUrls) -> anyhow::Result<PathBuf> {
     );
 
     // Create a new file to store the downloaded file
-    let dest_path = lade_cache_path().join(download_filename);
+    let dest_path = lade_downloaded_package_path().join(download_filename);
 
     let client = reqwest::blocking::Client::new();
 
@@ -77,6 +77,9 @@ pub fn download_package(url: &DownloadUrls) -> anyhow::Result<PathBuf> {
 pub fn download_file(url: &str, file_name: &str) -> anyhow::Result<PathBuf> {
     // Create a new file to store the downloaded file
     let dest_path = lade_downloaded_package_path().join(file_name);
+    if !dest_path.exists(){
+	fs::create_dir_all(lade_downloaded_package_path())?;
+    }
 
     let client = reqwest::blocking::Client::new();
 

@@ -1,9 +1,9 @@
-use std::fs;
 use crate::{
     crash, err, error,
     macros::UnwrapOrCrash,
     paths::{lade_build_path, lade_cache_path, lade_log_path},
 };
+use std::fs;
 
 pub fn clean() {
     println!("This operation will clean the log file, build directory, and cache directory. Do you want to accept?");

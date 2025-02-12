@@ -1,5 +1,7 @@
 #![allow(unused)]
-use std::path::PathBuf;
+use std::{fs, path::PathBuf};
+
+use crate::error;
 
 fn lade_config_dir() -> Option<PathBuf> {
     dirs_next::config_dir().map(|p| p.join("lade"))
@@ -60,4 +62,21 @@ pub fn lade_packages_installed_path() -> PathBuf {
 
 pub fn lade_packages_installed_dir_path() -> PathBuf {
     lade_config_dir().unwrap().join("installed")
+}
+
+pub fn lade_licenses_path() -> PathBuf{
+    let p = lade_config_dir().unwrap().join("Licenses");
+
+    if !p.exists(){
+	fs::create_dir_all(&p).unwrap_or_else(|e| {
+	    error!(format!("Failed to create {}: {}", &p.display(), e));
+	});
+    }
+
+    p
+	
+}
+
+pub fn lade_build_download_path() -> PathBuf{
+    lade_build_path().join("download").join("build")
 }

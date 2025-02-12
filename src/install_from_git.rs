@@ -4,19 +4,22 @@ use std::{env, fs, ops::ControlFlow};
 use crate::{
     crash, debug, err, error, info,
     macros::UnwrapOrCrash,
-    paths::{lade_bin_path, lade_build_git_path, lade_build_path},
+    paths::{lade_bin_path, lade_build_git_path},
     rhai_lade::execute,
     write_log,
 };
 
 pub fn install_preparation_git(package: &str, url: &str) -> anyhow::Result<()> {
-    debug!("Searching {}...", lade_build_git_path().join(package).display());
+    debug!(
+        "Searching {}...",
+        lade_build_git_path().join(package).display()
+    );
     if lade_build_git_path().join(package).exists() {
         if let Err(e) = fs::create_dir_all(lade_build_git_path()) {
             error!(format!("Failed to remove build directory: {}", e));
-        }else{
-	    debug!("Removed!");
-	}
+        } else {
+            debug!("Removed!");
+        }
     }
 
     let into = lade_build_git_path().join(package);
@@ -27,7 +30,7 @@ pub fn install_preparation_git(package: &str, url: &str) -> anyhow::Result<()> {
     let progress_bar = ProgressBar::new(0);
     progress_bar.set_style(
         ProgressStyle::default_bar()
-            .template("[{bar:40}] {bytes}/{total_bytes} ({eta})")
+            .template("[{bar:40}] {msg}")
             .expect("Invalid progress bar template")
             .progress_chars("#>-"),
     );
@@ -42,6 +45,7 @@ pub fn install_preparation_git(package: &str, url: &str) -> anyhow::Result<()> {
             if total > 0 {
                 progress_bar.set_length(total as u64);
                 progress_bar.set_position(received as u64);
+		progress_bar.set_message(format!("{}/{}", received, total));
             }
 
             true
@@ -60,7 +64,6 @@ pub fn install_preparation_git(package: &str, url: &str) -> anyhow::Result<()> {
     let result = builder.clone(url, &into);
 
     if let Err(e) = result {
-	
         error!(format!("Failed to clone repository: {}", e));
     }
 
@@ -85,20 +88,24 @@ pub fn install_from_git(package: &str, url: &str) -> anyhow::Result<()> {
                     format!("Failed to read install script: {e}, url: {url}")
                 );
             });
-            env::set_current_dir(lade_build_path()).unwrap_or_else(|e| {
+
+            let path = lade_build_git_path().join(package);
+            debug!("Changing directory to: {}", path.display());
+            env::set_current_dir(&path).unwrap_or_else(|e| {
                 error!(
-                    format!("Failed to install {}: Failed to set directory", &package),
+                    "Failed to set current directory!",
                     format!("Failed to set current directory: {}", e)
                 );
             });
-	    debug!("> executeing rhai content={content}");
+
+            debug!("> executeing rhai content={content}");
             execute::execute_rhai(&content).unwrap_or_else(|e| {
                 error!(
                     "Failed to execute install script",
                     format!("Failed to execute install script: {e}, url: {url}")
                 );
             });
-	    debug!("> Ok");
+            debug!("> Ok");
             return ControlFlow::Break(());
         }
         ControlFlow::Continue(())
@@ -132,9 +139,12 @@ pub fn install_from_git(package: &str, url: &str) -> anyhow::Result<()> {
         lade_bin_path().join(&package).display()
     );
     env::set_current_dir(&path).unwrap_or_else(|e| {
-	error!("Failed to set current directory!", format!("Failed to set current directory: {}", e));
+        error!(
+            "Failed to set current directory!",
+            format!("Failed to set current directory: {}", e)
+        );
     });
-    
+
     fs::rename(exec, lade_bin_path().join(&package)).unwrap_or_crash(|e| {
         err!("Failed to move executable file", e);
         write_log!(format!(
@@ -145,9 +155,9 @@ pub fn install_from_git(package: &str, url: &str) -> anyhow::Result<()> {
     });
 
     fs::remove_dir_all(&path).unwrap_or_else(|e| {
-	error!("Failed to remove directory: {}", e);
+        error!("Failed to remove directory: {}", e);
     });
-    
+
     info!("{} is installed!", package);
 
     Ok(())
