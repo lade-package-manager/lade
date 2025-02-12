@@ -16,7 +16,7 @@ pub fn check() {
         }
     }
 
-    if !check{
+    if !check {
         info!("All packages are already up to date");
     }
 }

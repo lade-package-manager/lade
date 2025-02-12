@@ -42,8 +42,6 @@ impl RFile {
         }
     }
 
-    
-
     pub fn write(&mut self, content: &str) {
         writeln!(&self.file, "{content}").unwrap_or_else(|e| {
             eprintln!("Failed to write {} file: {e}", self.path.display());

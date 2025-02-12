@@ -1,8 +1,7 @@
 use rhai::Array;
-use std::process::{Command, exit};
+use std::process::{exit, Command};
 
 use crate::debug;
-
 
 pub fn system_rhai(cmd: &str, args: Array) {
     let args: Vec<String> = args
@@ -14,7 +13,7 @@ pub fn system_rhai(cmd: &str, args: Array) {
     let status = Command::new(cmd).args(&args).status();
 
     match status {
-        Ok(status) if status.success() => {},
+        Ok(status) if status.success() => {}
         Ok(_) => {
             eprintln!("Command failed: {}", cmd);
             exit(1);

@@ -6,6 +6,7 @@ use crate::{
 use std::{
     fs,
     io::{BufReader, Read},
+    path::PathBuf,
 };
 use zip::ZipArchive;
 
@@ -44,7 +45,7 @@ pub fn search_package_lade(package: &str) -> Option<Package> {
             );
         });
 
-        let target_path = format!("{}/info.toml", package);
+        let target_path = PathBuf::new().join(package).join("info.toml");
 
         // ZIP内のファイルを探索
         for i in 0..archive.len() {
@@ -57,7 +58,7 @@ pub fn search_package_lade(package: &str) -> Option<Package> {
 
             if file
                 .enclosed_name()
-                .filter(|p| p.to_string_lossy() == target_path)
+                .filter(|p| p.to_string_lossy() == target_path.to_string_lossy())
                 .is_some()
             {
                 let mut contents = String::new();

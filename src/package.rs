@@ -14,6 +14,7 @@ pub struct Package {
     pub dependencies: Vec<String>,
     pub repository: String,
     pub download_url: Option<DownloadUrls>,
+    pub from_depends: Option<String>,
     bin_name: Option<String>,
 }
 
@@ -46,7 +47,10 @@ pub fn installed() -> Vec<Package> {
         vec![]
     } else {
         serde_json::from_str::<Vec<Package>>(&file).unwrap_or_else(|e| {
-            error!("Failed to parse json", format!("Failed to parse PackageJson: {e}"));
+            error!(
+                "Failed to parse json",
+                format!("Failed to parse PackageJson: {e}")
+            );
         })
     }
 }
@@ -78,7 +82,7 @@ fn update_installed<F: FnOnce(&mut Vec<Package>)>(f: F) {
     f(&mut installed);
     fs::write(
         path,
-        serde_json::to_string::<Vec<Package>>(&installed).unwrap(),
+        serde_json::to_string_pretty::<Vec<Package>>(&installed).unwrap(),
     )
     .unwrap();
 }

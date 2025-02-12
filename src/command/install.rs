@@ -1,5 +1,10 @@
 use crate::{
-    debug, dependencies, download_file::download_package, err, info, install_from_git, package::{self, DownloadUrls, Package}, search_package::search_package_lade, unzip_file
+    debug, dependencies,
+    download_file::download_package,
+    err, error, info, install_from_git,
+    package::{self, DownloadUrls, Package},
+    search_package::search_package_lade,
+    unzip_file,
 };
 use colored::*;
 use std::path::PathBuf;
@@ -45,13 +50,22 @@ pub fn install(packages: &mut [String]) -> Result<(), Box<dyn std::error::Error>
         .to_lowercase();
 
     if matches!(user_input.as_str(), "y" | "yes") {
+        // 逆順でインストール
         for pkg in resolved_dependencies.iter().rev() {
             if let Some(existing_pkg) = package::find(pkg) {
                 package::remove_installed_by_name(&existing_pkg.name);
             }
-            // install package
-            install_package(pkg)?;
+            // preparation
+            install_preparation(&pkg).unwrap_or_else(|e| {
+                error!(format!("Failed to preparation pacakge: {e}"));
+            });
         }
+
+        resolved_dependencies.into_iter().rev().for_each(|pkg| {
+            install_package(&pkg).unwrap_or_else(|e| {
+                error!(format!("Failed to install package: {e}"));
+            })
+        });
 
         info!("Installation completed successfully!");
     } else {
@@ -93,8 +107,26 @@ fn resolve_dependencies_and_collect(
     Ok(dependencies)
 }
 
+fn install_preparation(package: &str) -> anyhow::Result<()> {
+    if let Some(pkg_lade) = search_package_lade(package) {
+        info!(
+            "Preparationing \"{}\" ({}{}{}",
+            pkg_lade.name,
+            "v".bright_yellow(),
+            pkg_lade.version.to_string().bright_yellow(),
+            ")...".bold()
+        );
+        if let Some(download_url) = &pkg_lade.download_url {
+            /* preparation_download */
+        } else {
+            install_from_git::install_preparation_git(&pkg_lade.name, &pkg_lade.repository)?;
+        }
+    }
+    Ok(())
+}
+
 // パッケージインストール
-fn install_package(package: &str) -> Result<(), Box<dyn std::error::Error>> {
+fn install_package(package: &str) -> anyhow::Result<()> {
     if let Some(pkg_lade) = search_package_lade(package) {
         info!(
             "Installing \"{}\" ({}{}{}",
@@ -103,21 +135,24 @@ fn install_package(package: &str) -> Result<(), Box<dyn std::error::Error>> {
             pkg_lade.version.to_string().bright_yellow(),
             ")".bold()
         );
-        if let Some(download_url) = &pkg_lade.download_url {
-            install_from_url(download_url, package, &pkg_lade.repository)?;
+        if let Some(_) = &pkg_lade.download_url {
+            install_from_url(package, &pkg_lade.repository)?;
         } else {
             install_from_git::install_from_git(&pkg_lade.name, &pkg_lade.repository)?;
         }
 
         package::add_installed(pkg_lade);
     } else {
-        return Err(format!("Package not found during installation: {}", package).into());
+        return Err(anyhow::anyhow!(
+            "Package not found during installation: {}",
+            package
+        ));
     }
 
     Ok(())
 }
 
-fn install_from_lade(pkg_lade: Package) -> Result<Vec<String>, Box<dyn std::error::Error>> {
+fn install_from_lade(pkg_lade: Package) -> anyhow::Result<Vec<String>> {
     let dependencies = pkg_lade
         .dependencies
         .into_iter()
@@ -128,12 +163,21 @@ fn install_from_lade(pkg_lade: Package) -> Result<Vec<String>, Box<dyn std::erro
     Ok(dependencies)
 }
 
-fn install_from_url(
-    url: &DownloadUrls,
-    package: &str,
-    repo: &str,
-) -> Result<PathBuf, Box<dyn std::error::Error>> {
+fn preparation_downlaod_install(url: &DownloadUrls) -> anyhow::Result<PathBuf> {
     let file = download_package(url)?;
-    unzip_file::unzip_and_install_lade(&file, repo, package);
     Ok(file)
+}
+
+fn install_from_url(package: &str, repo: &str) -> anyhow::Result<()> {
+    if let Some(pkg_lade) = search_package_lade(package) {
+        if let Some(download_url) = pkg_lade.download_url {
+            let downloaded_file = preparation_downlaod_install(&download_url)?;
+            unzip_file::unzip_and_install_lade(downloaded_file, repo, package);
+            Ok(())
+        } else {
+            Err(anyhow::anyhow!("No download URL available for package: {}", package))
+        }
+    } else {
+        Err(anyhow::anyhow!("Package not found: {}", package))
+    }
 }

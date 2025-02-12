@@ -6,9 +6,9 @@ pub fn set_env(key: &str, value: &str) {
 
 pub fn get_env(key: &str) -> String {
     env::var(key).unwrap_or_else(|e| {
-        if e == VarError::NotPresent{
+        if e == VarError::NotPresent {
             return String::new();
-        }else{
+        } else {
             eprintln!("Failed to get {key}: {e}");
             std::process::exit(1);
         }

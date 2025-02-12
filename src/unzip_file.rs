@@ -1,20 +1,22 @@
 use crate::paths::{lade_bin_path, lade_build_path};
 use crate::{crash, err, info, log, write_log};
 use std::fs;
-use std::io::{BufRead, BufReader};
+use std::io::BufReader;
 use std::path::Path;
 
 #[macro_export]
 macro_rules! exec_shellscript {
-    ($word: expr) => {{
-        if $word.first().unwrap() != &"__install_end__" {
-            let mut child = std::process::Command::new($word.first().unwrap())
-                .args($word.iter().skip(1))
-                .current_dir($crate::paths::lade_build_path())
-                .spawn()
-                .unwrap();
-            child.wait().unwrap();
-        }
+    ($path: expr) => {{
+        use crate::error;
+        use crate::rhai_lade::execute;
+
+        let script = std::fs::read_to_string($path).unwrap_or_else(|e| {
+            error!(format!("Failed to read script: {}", e));
+        });
+
+        execute::execute_rhai(&script).unwrap_or_else(|e| {
+            error!(format!("Rhai Error: {e}"));
+        });
     }};
 }
 
@@ -66,17 +68,10 @@ fn unzip_file_lade<P: AsRef<Path>>(path: P) {
 pub fn unzip_and_install_lade<P: AsRef<Path>>(path: P, repo: &str, pkgname: &str) {
     unzip_file_lade(&path);
 
-    let install_sh = lade_build_path().join("install.sh");
+    let install_rhai = lade_build_path().join("install.rhai");
 
-    if install_sh.exists() {
-        chmod!(&install_sh);
-        let file = fs::File::open(&install_sh).unwrap();
-        let reader = BufReader::new(file);
-        for read in reader.lines() {
-            let line = read.unwrap();
-            let words: Vec<&str> = line.split_whitespace().collect();
-            exec_shellscript!(words);
-        }
+    if install_rhai.exists() {
+        exec_shellscript!(install_rhai);
     } else {
         err!("Failed to find install script");
         log!(

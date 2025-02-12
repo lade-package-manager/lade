@@ -31,6 +31,18 @@ pub fn lade_build_path() -> PathBuf {
     lade_config_dir().unwrap().join("build")
 }
 
+pub fn lade_build_git_path() -> PathBuf {
+    lade_build_path().join("git")
+}
+
+pub fn lade_downloaded_package_path() -> PathBuf {
+    lade_cache_path().join("packages")
+}
+
+pub fn lade_upgrade_info_path() -> PathBuf {
+    lade_cache_path().join("upgrade-info")
+}
+
 pub fn lade_cache_path() -> PathBuf {
     lade_config_dir().unwrap().join("cache")
 }

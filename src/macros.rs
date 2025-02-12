@@ -249,7 +249,7 @@ macro_rules! error {
 #[macro_export]
 macro_rules! debug {
     ($($arg:tt)*) => {{
-        let is_debug = std::env::var("LADE_DEBUG").unwrap_or("0".to_string());  
+        let is_debug = std::env::var("LADE_DEBUG").unwrap_or("0".to_string());
 
         if is_debug == "1"{
             let fmt = format!($($arg)*);
