@@ -1,10 +1,9 @@
-use std::fs;
-
 use crate::{
     crash, err, error,
     macros::UnwrapOrCrash,
     paths::{lade_build_path, lade_cache_path, lade_log_path},
 };
+use std::fs;
 
 pub fn clean() {
     println!("This operation will clean the log file, build directory, and cache directory. Do you want to accept?");
@@ -35,19 +34,13 @@ pub fn clean() {
             };
 
             remove_item(&dirs).unwrap_or_else(|e| {
-                error!(
-                    format!("Failed to remove {}: {}", dirs.display(), e),
-                    format!("Failed to remove {}: {}", dirs.display(), e)
-                );
+                error!(format!("Failed to remove {}: {}", dirs.display(), e));
             });
         }
 
         if dirs.is_dir() {
             fs::create_dir_all(&dirs).unwrap_or_else(|e| {
-                error!(
-                    format!("Failed to create {}: {}", dirs.display(), e),
-                    format!("Failed to create {}: {}", dirs.display(), e)
-                );
+                error!(format!("Failed to create {}: {}", dirs.display(), e));
             });
         } else {
             fs::File::create(&dirs).unwrap_or_crash_by_status(404, |e| {

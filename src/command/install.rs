@@ -1,22 +1,21 @@
 use crate::{
-    dependencies,
+    debug, dependencies,
     download_file::download_package,
-    exe_name::get_exec_name,
-    info, install_from_git,
-    installed_structs::{Installed, Package},
-    package_list_structs::{LadePackage, RadePackage},
-    search_package, unzip_file,
+    err, error, info, install_from_git,
+    package::{self, DownloadUrls, Package},
+    search_package::search_package_lade,
+    unzip_file,
 };
 use colored::*;
 use std::path::PathBuf;
 
-pub fn install(packages: &mut [String]) -> Result<(), Box<dyn std::error::Error>> {
+pub fn install(packages: &mut [String]) -> anyhow::Result<()> {
     info!("Resolving dependencies...");
     let resolved_dependencies = resolve_dependencies(packages)?;
 
     // 依存関係をリスト表示
     packages.iter().for_each(|f| {
-        if Installed::is_installed(f) {
+        if package::already_installed(f) {
             info!("Package {} is already installed. Reinstalling...", f);
         }
     });
@@ -29,20 +28,21 @@ pub fn install(packages: &mut [String]) -> Result<(), Box<dyn std::error::Error>
                 println!();
             }
 
-            let pkg = search_package::search(package);
+            let pkg = search_package_lade(package);
 
-            if let Some(pkg_lade) = pkg.lade {
-                print!("{} (v{}) ", pkg_lade.name, pkg_lade.version.bright_yellow());
-            }
-
-            if let Some(pkg_rade) = pkg.rade {
-                print!("{} ({}) ", package, pkg_rade.version.bright_yellow());
+            if let Some(pkg_lade) = pkg {
+                print!(
+                    "{} ({}{}) ",
+                    pkg_lade.name,
+                    "v".bright_yellow(),
+                    pkg_lade.version.to_string().bright_yellow()
+                );
             }
         });
 
     println!();
 
-    println!("Do you want to proceed with installation? [Y/n]");
+    println!("Do you want to proceed with installation?");
     let mut line = rustyline::Editor::<(), rustyline::history::DefaultHistory>::new()?;
     let user_input = line
         .readline_with_initial("[y/n] ", ("y", ""))?
@@ -50,29 +50,38 @@ pub fn install(packages: &mut [String]) -> Result<(), Box<dyn std::error::Error>
         .to_lowercase();
 
     if matches!(user_input.as_str(), "y" | "yes") {
-        let mut installed = Installed::new();
+        // 逆順でインストール
         for pkg in resolved_dependencies.iter().rev() {
-            if let Some(existing_pkg) = Installed::search_package(pkg) {
-                installed.remove_package_by_name(&existing_pkg.name);
+            if let Some(existing_pkg) = package::find(pkg) {
+                package::remove_installed_by_name(&existing_pkg.name);
             }
-            // install package
-            install_package(&mut installed, pkg)?;
+            // preparation
+            install_preparation(&pkg).unwrap_or_else(|e| {
+                error!(format!("Failed to preparation pacakge: {e}"));
+            });
         }
 
-        println!("Installation completed successfully.");
+        resolved_dependencies.into_iter().rev().for_each(|pkg| {
+            install_package(&pkg).unwrap_or_else(|e| {
+                error!(format!("Failed to install package: {e}"));
+            });
+        });
+
+        info!("Installation completed successfully!");
     } else {
-        println!("Installation canceled.");
+        err!("Installation canceled.");
     }
 
     Ok(())
 }
 
 // 依存関係解決
-fn resolve_dependencies(packages: &[String]) -> Result<Vec<String>, Box<dyn std::error::Error>> {
+fn resolve_dependencies(packages: &[String]) -> anyhow::Result<Vec<String>> {
     let mut dependencies = Vec::new();
 
     for package in packages {
-        let package_dependencies = resolve_dependencies_and_collect(package)?;
+        debug!("resolve package: {package}");
+        let package_dependencies = resolve_dependencies_and_collect(package)?;	
         dependencies.extend(package_dependencies);
     }
 
@@ -84,124 +93,93 @@ fn resolve_dependencies(packages: &[String]) -> Result<Vec<String>, Box<dyn std:
 // 依存関係を収集
 fn resolve_dependencies_and_collect(
     package: &str,
-) -> Result<Vec<String>, Box<dyn std::error::Error>> {
+) -> anyhow::Result<Vec<String>> {
     let mut dependencies = Vec::new();
 
     dependencies.push(package.to_string());
 
-    if let Some(pkg_lade) = search_package::lade(package) {
+    if let Some(pkg_lade) = search_package_lade(package) {
         dependencies.extend(install_from_lade(pkg_lade)?);
-    } else if let Some(pkg_rade) = search_package::rade(package) {
-        dependencies.extend(install_from_rade(pkg_rade)?);
     } else {
-        return Err(format!("Package not found: {}", package).into());
+        return Err(anyhow::anyhow!("Package not found: {}", package).into());
     }
 
     Ok(dependencies)
 }
 
-// パッケージインストール
-fn install_package(
-    installed: &mut Installed,
-    package: &str,
-) -> Result<(), Box<dyn std::error::Error>> {
-    if let Some(pkg_lade) = search_package::lade(package) {
+fn install_preparation(package: &str) -> anyhow::Result<()> {
+    if let Some(pkg_lade) = search_package_lade(package) {
         info!(
-            "Installing {} (v{})",
+            "Preparationing \"{}\" ({}{}{}",
             pkg_lade.name,
-            pkg_lade.version.bright_yellow()
+            "v".bright_yellow(),
+            pkg_lade.version.to_string().bright_yellow(),
+            ")...".bold()
         );
-        if let Some(download_url) = pkg_lade.download.clone() {
-            install_from_url(&download_url, package)?;
+        if let Some(download_url) = &pkg_lade.download_url {
+	    preparation_downlaod_install(download_url)?;
+        } else {
+            install_from_git::install_preparation_git(&pkg_lade.name, &pkg_lade.repository)?;
+        }
+    }
+    Ok(())
+}
+
+// パッケージインストール
+fn install_package(package: &str) -> anyhow::Result<()> {
+    if let Some(pkg_lade) = search_package_lade(package) {
+        info!(
+            "Installing \"{}\" ({}{}{}",
+            pkg_lade.name,
+            "v".bright_yellow(),
+            pkg_lade.version.to_string().bright_yellow(),
+            ")".bold()
+        );
+        if let Some(url) = &pkg_lade.download_url {
+            install_from_url(url, package, &pkg_lade.repository)?;
         } else {
             install_from_git::install_from_git(&pkg_lade.name, &pkg_lade.repository)?;
         }
 
-        let inst = pkg_lade.download.clone();
-        installed.add_package(Package::new(
-            pkg_lade.name,
-            pkg_lade.version,
-            pkg_lade.description,
-            pkg_lade.license,
-            pkg_lade.authors,
-            pkg_lade.dependencies,
-            pkg_lade.repository,
-            inst,
-            package.to_owned(),
-        ));
-    } else if let Some(pkg_rade) = search_package::rade(package) {
-        info!(
-            "Installing {} ({})",
-            package,
-            pkg_rade.version.bright_yellow()
-        );
-
-        let mut nv = None;
-        #[allow(unused)]
-        let mut exec_name = String::new();
-
-        if pkg_rade.download {
-            nv = Some(String::from("true"));
-            install_from_url(package, package)?;
-            exec_name = get_exec_name();
-            if exec_name.is_empty() {
-                exec_name = package.to_string();
-            }
-        } else {
-            install_from_git::install_from_git(package, &pkg_rade.repository)?;
-
-            exec_name = get_exec_name();
-            if exec_name.trim().is_empty() {
-                exec_name = package.to_string();
-            }
-        }
-
-        installed.add_package(Package::new(
-            package.to_string(),
-            pkg_rade.version,
-            String::new(),
-            String::new(),
-            Vec::new(),
-            pkg_rade
-                .dependencies
-                .split(',')
-                .map(str::to_string)
-                .collect(),
-            pkg_rade.repository,
-            nv,
-            exec_name.trim().to_string(),
-        ));
+        package::add_installed(pkg_lade);
     } else {
-        return Err(format!("Package not found during installation: {}", package).into());
+        return Err(anyhow::anyhow!(
+            "Package not found during installation: {}",
+            package
+        ));
     }
 
     Ok(())
 }
 
-fn install_from_lade(pkg_lade: LadePackage) -> Result<Vec<String>, Box<dyn std::error::Error>> {
+fn install_from_lade(pkg_lade: Package) -> anyhow::Result<Vec<String>> {
     let dependencies = pkg_lade
         .dependencies
         .into_iter()
-        .filter(|deps| search_package::lade(deps).is_some() || search_package::rade(deps).is_some())
+        .filter(|deps| search_package_lade(deps).is_some())
         .collect::<Vec<_>>();
 
     let dependencies = dependencies::solve(&dependencies);
     Ok(dependencies)
 }
 
-fn install_from_rade(pkg_rade: RadePackage) -> Result<Vec<String>, Box<dyn std::error::Error>> {
-    let dependencies = pkg_rade
-        .dependencies
-        .split(',')
-        .map(str::to_string)
-        .collect::<Vec<_>>();
-
-    let dependencies = dependencies::solve(&dependencies);
-    Ok(dependencies)
-}
-
-fn install_from_url(url: &str, package: &str) -> Result<PathBuf, Box<dyn std::error::Error>> {
+fn preparation_downlaod_install(url: &DownloadUrls) -> anyhow::Result<PathBuf> {
     let file = download_package(url)?;
-    unzip_file::unzip_and_install_lade(&file, url, package);
     Ok(file)
+}
+
+fn install_from_url(url: &DownloadUrls, package: &str, repo: &str) -> anyhow::Result<()> {
+    if let Some(pkg_lade) = search_package_lade(package) {
+        if let Some(_) = pkg_lade.download_url {
+            unzip_file::unzip_and_install_lade(url, repo, package);
+            Ok(())
+        } else {
+            Err(anyhow::anyhow!(
+                "No download URL available for package: {}",
+                package
+            ))
+        }
+    } else {
+        Err(anyhow::anyhow!("Package not found: {}", package))
+    }
 }

@@ -1,31 +1,15 @@
-use crate::search_package;
+use crate::{crash, search_package::search_package_lade};
 use colored::Colorize;
 
 pub fn search_package(package: &str) {
-    let lade_result = search_package::lade(package);
+    let lade_result = search_package_lade(package);
     if lade_result.is_none() {
-        let rade_result = search_package::rade(package);
-        if rade_result.is_none() {
-            println!("{} {}", ">>>".red().bold(), "Package not found.".bold());
-        }
-
-        if let Some(result) = rade_result {
-            println!(
-                "{} {}",
-                ">>>".green().bold(),
-                "Package found in rade package list.".bold()
-            );
-            println!("Name: {}", package);
-            println!("Version: {}", result.version);
-            println!("Repository: {}", result.repository);
-            println!("Download: {}", result.download);
-            println!("Language: {}", result.language);
-            println!("Capacity: {}", result.capacity);
-            if !["", "None"].contains(&result.dependencies.as_str()) {
-                println!("Dependencies: {}", result.dependencies);
-            }
-            println!();
-        }
+        println!(
+            "{} {}",
+            ">>>".green().bold(),
+            "Package found in package list.".bold()
+        );
+        crash!();
     }
 
     if let Some(result) = lade_result {
@@ -36,11 +20,22 @@ pub fn search_package(package: &str) {
         );
 
         println!("Name: {}", result.name);
-        println!("Version: {}", result.version);
+        match result.older_versions {
+            Some(older_versions) => {
+                println!(
+                    "{}",
+                    older_versions
+                        .into_iter()
+                        .fold(result.version.to_string(), |b, v| format!("{b}, {v}"))
+                )
+            }
+            None => println!("Available Version: {}", result.version),
+        }
+
         println!("Repository: {}", result.repository);
 
-        if let Some(download) = result.download {
-            println!("Download: {}", download);
+        if result.download_url.is_some() {
+            println!("Download: true");
         }
 
         println!("Description: {}", result.description);
