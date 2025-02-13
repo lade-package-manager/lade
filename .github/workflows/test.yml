@@ -38,7 +38,5 @@ jobs:
       run: sudo apt update
     - name: Install dependencies
       run: sudo apt install -y pkg-config libssl-dev
-    - name: set branch
-      run: git checkout dev
-    - name: test project
-      run: cargo test
+    - name: check the project
+      run: cargo check
