@@ -99,6 +99,13 @@ pub fn install_from_git(package: &str, url: &str) -> anyhow::Result<()> {
             });
 
             debug!("> executeing rhai content={content}");
+            env::set_current_dir(&path).unwrap_or_else(|e| {
+                error!(
+                    "Failed to set current directory!",
+                    format!("Failed to set current directory: {}", e)
+                );
+            });
+
             execute::execute_rhai(&content).unwrap_or_else(|e| {
                 error!(
                     "Failed to execute install script",
