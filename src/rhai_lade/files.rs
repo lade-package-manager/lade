@@ -23,6 +23,13 @@ pub fn open_file_share(file: &str) -> Shared<RefCell<RFile>> {
     Shared::new(RefCell::new(RFile::open_file(file)))
 }
 
+pub fn move_file(from: &str, to: &str) {
+    fs::rename(from, to).unwrap_or_else(|e| {
+        eprintln!("Failed to move file, from: {from}, to: {to}: {e}");
+        std::process::exit(1);
+    });
+}
+
 impl RFile {
     pub fn open_file(file: &str) -> Self {
         let path: &Path = file.as_ref();

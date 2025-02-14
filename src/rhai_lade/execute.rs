@@ -20,6 +20,8 @@ pub fn execute_rhai(source: &str) -> Result<(), Box<dyn Error>> {
     engine.register_fn("set_env", envs::set_env);
 
     // register `RFile` structs
+    engine.register_fn("move_file", files::move_file);
+
     engine
         .register_type::<files::RFile>()
         .register_fn("open_file", files::open_file_share)
@@ -45,6 +47,27 @@ pub fn execute_rhai(source: &str) -> Result<(), Box<dyn Error>> {
         .register_fn("file_name", path::RPath::file_name)
         .register_fn("exists", path::RPath::exists)
         .register_fn("read_file", path::RPath::read_file);
+
+    // register infos
+    engine
+        .register_fn("info", |info_text: &str| {
+            println!(
+                "\x1b[34;1m>>>\x1b[0m\x1b[34m INSTALLER-INFO:\x1b[0m {}",
+                info_text
+            );
+        })
+        .register_fn("warn", |warn_msg: &str| {
+            println!(
+                "\x1b[33;1m>>>\x1b[0m\x1b[33m INSTALLER-WARN:\x1b[0m {}",
+                warn_msg
+            );
+        })
+        .register_fn("err", |err_msg: &str| {
+            println!(
+                "\x1b[31;1m>>>\x1b[0m\x1b[31m INSTALLER-ERR:\x1b[0m {}",
+                err_msg
+            );
+        });
 
     engine.run(source)?;
     Ok(())
