@@ -15,7 +15,7 @@ pub fn install_preparation_git(package: &str, url: &str) -> anyhow::Result<()> {
         lade_build_git_path().join(package).display()
     );
     if lade_build_git_path().join(package).exists() {
-        if let Err(e) = fs::create_dir_all(lade_build_git_path()) {
+        if let Err(e) = fs::remove_dir_all(lade_build_git_path()) {
             error!(format!("Failed to remove build directory: {}", e));
         } else {
             debug!("Removed!");
@@ -45,7 +45,7 @@ pub fn install_preparation_git(package: &str, url: &str) -> anyhow::Result<()> {
             if total > 0 {
                 progress_bar.set_length(total as u64);
                 progress_bar.set_position(received as u64);
-		progress_bar.set_message(format!("{}/{}", received, total));
+                progress_bar.set_message(format!("{}/{}", received, total));
             }
 
             true
