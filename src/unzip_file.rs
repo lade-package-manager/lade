@@ -1,10 +1,12 @@
 use rustyline::completion::Candidate;
 
 use crate::package::DownloadUrls;
-use crate::paths::{lade_bin_path, lade_build_download_path, lade_downloaded_package_path, lade_licenses_path};
-use crate::{crash, debug, err, err_with_fmt, info, log, write_log};
+use crate::paths::{
+    lade_bin_path, lade_build_download_path, lade_downloaded_package_path, lade_licenses_path,
+};
+use crate::{crash, debug, err, err_with_fmt, error, info, log, write_log};
 use std::fs;
-use std::io::BufReader;
+use std::io::{BufReader, ErrorKind};
 use std::path::Path;
 
 #[macro_export]
@@ -68,7 +70,7 @@ fn unzip_file_lade<P: AsRef<Path>>(path: P) {
     }
 }
 
-pub fn unzip_and_install_lade(url: &DownloadUrls,repo: &str, pkgname: &str) {
+pub fn unzip_and_install_lade(url: &DownloadUrls, repo: &str, pkgname: &str) {
     #[allow(unused_assignments)]
     let mut dl_url = String::new();
 
@@ -85,16 +87,24 @@ pub fn unzip_and_install_lade(url: &DownloadUrls,repo: &str, pkgname: &str) {
     let mut dldir = dl_url.split('/').last().unwrap().to_string();
 
     debug!("dldir='{}'", &dldir.display());
-    
+
     let path = lade_downloaded_package_path().join(&dldir);
     unzip_file_lade(&path);
 
     dldir = dldir.replace(".zip", "");
 
-    debug!("searching: {}", lade_build_download_path().join(&dldir).join("install.rhai").display());
+    debug!(
+        "searching: {}",
+        lade_build_download_path()
+            .join(&dldir)
+            .join("install.rhai")
+            .display()
+    );
     let install_rhai = lade_build_download_path().join(&dldir).join("install.rhai");
+    debug!("install script: {}", install_rhai.display());
 
     if install_rhai.exists() {
+        debug!("executing script: {}", install_rhai.display());
         exec_shellscript!(install_rhai);
     } else {
         err!("Failed to find install script");
@@ -119,8 +129,11 @@ pub fn unzip_and_install_lade(url: &DownloadUrls,repo: &str, pkgname: &str) {
 
     debug!("exec name: '{exec_name}'");
 
+    debug!("move executable file");
     match fs::rename(
-        lade_build_download_path().join(&dldir).join(exec_name.trim()),
+        lade_build_download_path()
+            .join(&dldir)
+            .join(exec_name.trim()),
         lade_bin_path().join(exec_name.trim()),
     ) {
         Ok(_) => {}
@@ -133,17 +146,35 @@ pub fn unzip_and_install_lade(url: &DownloadUrls,repo: &str, pkgname: &str) {
 
     chmod!(lade_bin_path().join(exec_name.trim()));
 
-    
-    let license_file = lade_licenses_path().join(repo);
+    // search license file
 
-    if license_file.exists(){
-	fs::rename(lade_build_download_path(), license_file.join("License")).unwrap_or_else(|e| {
-	    err_with_fmt!("Failed to move License file: {}", e);
-	    log!("Failed to move Licese file", e);
-	    crash!(1);
-	});
-    }
-    
-    
-    info!("{} is installed now!", pkgname);     
+    let license_file = lade_build_download_path().join(&dldir).join("License");
+    let license_upper = lade_build_download_path().join(&dldir).join("LICENSE");
+    let license_lower = lade_build_download_path().join(&dldir).join("license");
+
+    let licenses = [license_file, license_upper, license_lower];
+
+    // find license file
+    licenses.into_iter().for_each(|license| {
+        debug!("search license file: {}", &license.display());
+
+        if license.exists() {
+            debug!("found license file: {}", &license.display());
+
+            let moveto = lade_licenses_path().join(pkgname);
+
+            fs::create_dir_all(&moveto).unwrap_or_else(|e| {
+                if e.kind() == ErrorKind::AlreadyExists {}
+                error!(format!("Failed to create dir: {e}"));
+            });
+
+            fs::rename(&license, moveto.join(&license.file_name().unwrap())).unwrap_or_else(|e| {
+                err_with_fmt!("Failed to move License file: {}", e);
+                log!("Failed to move Licese file", e);
+                crash!(1);
+            });
+        }
+    });
+
+    info!("{} is installed now!", pkgname);
 }

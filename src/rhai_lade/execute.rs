@@ -3,6 +3,7 @@ use rhai::Shared;
 use std::cell::RefCell;
 use std::error::Error;
 
+use super::cross_platform;
 use super::path;
 use super::{
     envs,
@@ -68,6 +69,12 @@ pub fn execute_rhai(source: &str) -> Result<(), Box<dyn Error>> {
                 err_msg
             );
         });
+
+    // register cross platform
+    engine
+        .register_fn("windows", cross_platform::windows)
+        .register_fn("linux", cross_platform::linux)
+        .register_fn("macos", cross_platform::macos);
 
     engine.run(source)?;
     Ok(())

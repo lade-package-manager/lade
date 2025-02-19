@@ -7,7 +7,7 @@ use crate::{package::Package, paths};
 pub fn list() {
     let lade_packagelist = [
         paths::lade_package_list_main_path(),
-        /* paths::lade_package_list_extra_path(), */
+        paths::lade_package_list_extra_path(),
     ];
 
     for path in lade_packagelist {

@@ -1,9 +1,12 @@
-use std::{error::Error, fs};
+use std::{error::Error, fs, io::ErrorKind};
 
 use colored::Colorize;
 
 use crate::{
-    crash, dependencies::solve, err, info, package, paths::lade_bin_path,
+    crash,
+    dependencies::solve,
+    err, error, info, package,
+    paths::{lade_bin_path, lade_licenses_path},
     search_package::search_package_lade,
 };
 
@@ -20,6 +23,14 @@ pub fn remove(package: &str) -> Result<(), Box<dyn Error>> {
             let path = lade_bin_path().join(pkg.bin_name());
             fs::remove_file(path)?;
             package::remove_installed_by_name(package);
+            fs::remove_dir_all(lade_licenses_path().join(&pkg.name)).unwrap_or_else(|e| {
+                match e.kind() {
+                    ErrorKind::NotFound => {}
+                    _ => {
+                        error!(format!("Failed to remove license directory: {}", e))
+                    }
+                }
+            });
 
             info!("The package deletion was successfully completed without incident!");
 
