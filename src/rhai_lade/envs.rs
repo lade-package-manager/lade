@@ -1,7 +1,9 @@
 use std::env::{self, VarError};
 
 pub fn set_env(key: &str, value: &str) {
-    env::set_var(key, value);
+    unsafe {
+        env::set_var(key, value);
+    }
 }
 
 pub fn get_env(key: &str) -> String {
